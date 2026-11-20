@@ -32,7 +32,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 
     /* Global Root Resets */
-    html, body, [class*="st-"] {
+    html, body, p, label {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #17232D;
     }
@@ -202,6 +202,47 @@ st.markdown("""
         border: 1px solid #D9DFE1 !important;
     }
 
+    /* Form & Selectbox Styling (BaseWeb Overrides to ensure high contrast) */
+    div[data-baseweb="select"],
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="select"] input {
+        background-color: #FFFFFF !important;
+        color: #17232D !important;
+        border-color: #D9DFE1 !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.90rem !important;
+    }
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] div {
+        color: #17232D !important;
+    }
+    div[data-baseweb="select"] svg {
+        fill: #17232D !important;
+    }
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    ul[data-baseweb="menu"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #D9DFE1 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+    }
+    li[data-baseweb="menu-item"],
+    li[data-baseweb="menu-item"] > div {
+        background-color: #FFFFFF !important;
+        color: #17232D !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.88rem !important;
+    }
+    li[data-baseweb="menu-item"]:hover,
+    li[data-baseweb="menu-item"]:hover > div,
+    li[data-baseweb="menu-item"][aria-selected="true"],
+    li[data-baseweb="menu-item"][aria-selected="true"] > div {
+        background-color: #EAECE9 !important;
+        color: #17232D !important;
+        font-weight: 600 !important;
+    }
+
     /* Textarea adjustment */
     .stTextArea textarea {
         background-color: #FFFFFF !important;
@@ -217,7 +258,8 @@ st.markdown("""
     }
 
     /* Primary Action Buttons */
-    .stButton button[kind="primary"] {
+    .stButton button[kind="primary"],
+    .stButton button[kind="primary"] * {
         background-color: #17232D !important;
         color: #FFFFFF !important;
         border: 1px solid #17232D !important;
@@ -227,9 +269,11 @@ st.markdown("""
         letter-spacing: 0.02em !important;
         transition: background-color 0.15s ease !important;
     }
-    .stButton button[kind="primary"]:hover {
+    .stButton button[kind="primary"]:hover,
+    .stButton button[kind="primary"]:hover * {
         background-color: #E66B36 !important;
         border-color: #E66B36 !important;
+        color: #FFFFFF !important;
     }
 
     .stButton button[kind="secondary"] {
