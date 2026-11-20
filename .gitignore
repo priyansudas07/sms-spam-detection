@@ -10,11 +10,7 @@ env/
 .env
 
 # Data and Raw Datasets (Do not commit large datasets to GitHub)
-data/raw/
-data/*.zip
-data/*.tar.gz
-data/*.csv
-data/*.txt
+data/*
 !data/README.md
 
 # Serialized models and large artifact files
