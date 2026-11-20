@@ -202,7 +202,10 @@ st.markdown("""
         border: 1px solid #D9DFE1 !important;
     }
 
-    /* Form & Selectbox Styling (BaseWeb Overrides to ensure high contrast) */
+    /* Form & Selectbox Styling (BaseWeb, ARIA & Streamlit Overrides to guarantee 100% High Contrast) */
+    div[data-testid="stSelectbox"],
+    div[data-testid="stSelectbox"] > div,
+    div[data-testid="stSelectbox"] > div > div,
     div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="select"] input {
@@ -213,22 +216,39 @@ st.markdown("""
         font-size: 0.90rem !important;
     }
     div[data-baseweb="select"] span,
-    div[data-baseweb="select"] div {
+    div[data-baseweb="select"] div,
+    div[data-testid="stSelectbox"] span,
+    div[data-testid="stSelectbox"] div {
         color: #17232D !important;
     }
-    div[data-baseweb="select"] svg {
+    div[data-baseweb="select"] svg,
+    div[data-testid="stSelectbox"] svg {
         fill: #17232D !important;
+        background: transparent !important;
     }
+    /* Popovers, menus and options (BaseWeb + ARIA role-based) */
     div[data-baseweb="popover"],
     div[data-baseweb="popover"] > div,
-    ul[data-baseweb="menu"] {
+    ul[data-baseweb="menu"],
+    ul[data-baseweb="menu"] > li,
+    [role="listbox"],
+    [role="listbox"] > li,
+    [role="option"] {
         background-color: #FFFFFF !important;
+        color: #17232D !important;
+        border-color: #D9DFE1 !important;
+    }
+    ul[data-baseweb="menu"],
+    [role="listbox"] {
         border: 1px solid #D9DFE1 !important;
         border-radius: 6px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
     }
     li[data-baseweb="menu-item"],
-    li[data-baseweb="menu-item"] > div {
+    li[data-baseweb="menu-item"] > div,
+    [role="option"],
+    [role="option"] > div,
+    [role="option"] span {
         background-color: #FFFFFF !important;
         color: #17232D !important;
         font-family: 'Inter', sans-serif !important;
@@ -237,7 +257,11 @@ st.markdown("""
     li[data-baseweb="menu-item"]:hover,
     li[data-baseweb="menu-item"]:hover > div,
     li[data-baseweb="menu-item"][aria-selected="true"],
-    li[data-baseweb="menu-item"][aria-selected="true"] > div {
+    li[data-baseweb="menu-item"][aria-selected="true"] > div,
+    [role="option"]:hover,
+    [role="option"]:hover > div,
+    [role="option"][aria-selected="true"],
+    [role="option"][aria-selected="true"] > div {
         background-color: #EAECE9 !important;
         color: #17232D !important;
         font-weight: 600 !important;
