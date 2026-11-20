@@ -1,18 +1,26 @@
 """
 Feature Extraction Module for SMS Spam Detection.
 
-This module handles:
-1. Stratified 80:20 Train-Test splitting to preserve class balance without leakage.
-2. Feature extraction using TF-IDF (Term Frequency-Inverse Document Frequency).
-3. Custom scikit-learn compatible preprocessor transformer.
-4. Separate vectorizer configurations tailored to model families:
-   - Standard TF-IDF for Multinomial Naive Bayes, Logistic Regression, and Linear SVM.
-   - Binarized TF-IDF / Binary Vectorizer for Bernoulli Naive Bayes (modeling presence/absence).
+This module implements two distinct feature extraction techniques:
+1. TF-IDF Vectorizer (Term Frequency - Inverse Document Frequency)
+   - Continuous term weighting scaled by inverse document frequency.
+   - Captures relative semantic importance and reduces weight of ubiquitous tokens.
+2. CountVectorizer (Term Frequency / Bag-of-Words)
+   - Evaluates absolute raw occurrence counts of n-grams.
+   - Matches the word embedding approach selected in the IEEE TENCON 2023 paper.
+
+Key Methodological Specifications:
+- Both vectorizers support n-gram ranges (unigrams + bigrams: (1, 2)).
+- Special Bernoulli Naive Bayes requirement: BernoulliNB strictly requires binary
+  indicator features representing word presence/absence (x_ij in {0, 1}). Both
+  vectorizers support an explicit `binary=True` flag to enforce this constraint.
+- Zero Data Leakage: Splitting is performed before any vocabulary fitting. All
+  vectorizers are fitted exclusively on training data (X_train).
 """
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from preprocessing import preprocess_text
@@ -20,8 +28,9 @@ from preprocessing import preprocess_text
 
 class TextPreprocessorTransformer(BaseEstimator, TransformerMixin):
     """
-    Scikit-Learn compatible transformer that applies text preprocessing
+    Scikit-learn compatible transformer that applies text preprocessing
     consistently across train and test sets inside a Pipeline.
+    Prevents leakage by isolating text transformations per fold.
     """
     def __init__(self):
         pass
@@ -37,8 +46,9 @@ class TextPreprocessorTransformer(BaseEstimator, TransformerMixin):
 
 def split_data(df, text_col='message', target_col='label_num', test_size=0.20, random_state=42):
     """
-    Splits dataset into stratified train and test partitions.
-    Preserves the 87.6% Ham / 12.4% Spam proportion across both folds.
+    Splits the dataset into stratified 80:20 train-test partitions.
+    Preserves the authentic natural class distribution:
+    ~87.6% Ham (Legitimate) to ~12.4% Spam.
     """
     X = df[text_col]
     y = df[target_col]
@@ -51,24 +61,98 @@ def split_data(df, text_col='message', target_col='label_num', test_size=0.20, r
     )
 
     print(f"[INFO] Train set: {len(X_train)} samples | Test set: {len(X_test)} samples")
-    print(f"[INFO] Train class balance: Ham = {(y_train == 0).sum()} ({(y_train == 0).mean()*100:.1f}%), Spam = {(y_train == 1).sum()} ({(y_train == 1).mean()*100:.1f}%)")
-    print(f"[INFO] Test class balance:  Ham = {(y_test == 0).sum()} ({(y_test == 0).mean()*100:.1f}%), Spam = {(y_test == 1).sum()} ({(y_test == 1).mean()*100:.1f}%)")
+    print(f"[INFO] Train class balance: Ham = {(y_train == 0).sum()} ({(y_train == 0).mean()*100:.2f}%), Spam = {(y_train == 1).sum()} ({(y_train == 1).mean()*100:.2f}%)")
+    print(f"[INFO] Test class balance:  Ham = {(y_test == 0).sum()} ({(y_test == 0).mean()*100:.2f}%), Spam = {(y_test == 1).sum()} ({(y_test == 1).mean()*100:.2f}%)")
 
     return X_train, X_test, y_train, y_test
 
 
-def get_tfidf_vectorizer(max_features=3000, binary=False):
+def get_vectorizer(technique="tfidf", max_features=4000, binary=False, ngram_range=(1, 2)):
     """
-    Returns a TF-IDF vectorizer configured for numerical text representation.
-    - binary=False: standard continuous TF-IDF weights (used for MNB, LR, SVM)
-    - binary=True: binarized TF-IDF (1 for presence, 0 for absence, used for BNB)
+    Factory function returning the configured vectorizer instance.
+
+    Parameters:
+    - technique (str): 'tfidf' for TF-IDF Vectorizer or 'count' for CountVectorizer.
+    - max_features (int): Maximum vocabulary size to retain based on term frequency.
+    - binary (bool): If True, all non-zero counts are set to 1.
+                     Mandatory for Bernoulli Naive Bayes (presence/absence model).
+    - ngram_range (tuple): Range of n-values for token n-grams (default unigrams + bigrams: (1, 2)).
+
+    Returns:
+    - Scikit-learn Vectorizer instance (TfidfVectorizer or CountVectorizer).
     """
-    return TfidfVectorizer(
-        max_features=max_features,
-        binary=binary,
-        sublinear_tf=True,
-        ngram_range=(1, 2)  # unigrams and bigrams to capture phrases like 'free entry', 'claim now'
-    )
+    technique_clean = str(technique).lower().strip()
+
+    if technique_clean == "tfidf":
+        return TfidfVectorizer(
+            max_features=max_features,
+            binary=binary,
+            sublinear_tf=(not binary),  # Apply sublinear scaling only for continuous weights
+            ngram_range=ngram_range
+        )
+    elif technique_clean in ["count", "countvectorizer", "bow"]:
+        return CountVectorizer(
+            max_features=max_features,
+            binary=binary,
+            ngram_range=ngram_range
+        )
+    else:
+        raise ValueError(f"Unsupported feature extraction technique: '{technique}'. Choose 'tfidf' or 'count'.")
+
+
+def inspect_feature_extraction(X_train):
+    """
+    Inspects and compares matrices generated by both vectorization techniques
+    on the preprocessed training corpus.
+    """
+    preprocessor = TextPreprocessorTransformer()
+    X_train_clean = preprocessor.transform(X_train)
+
+    # 1. Standard Continuous TF-IDF
+    tfidf_vec = get_vectorizer(technique="tfidf", max_features=4000, binary=False)
+    X_tfidf = tfidf_vec.fit_transform(X_train_clean)
+
+    # 2. Binarized TF-IDF (for BernoulliNB)
+    tfidf_bin_vec = get_vectorizer(technique="tfidf", max_features=4000, binary=True)
+    X_tfidf_bin = tfidf_bin_vec.fit_transform(X_train_clean)
+
+    # 3. Standard CountVectorizer (Frequency Counts)
+    count_vec = get_vectorizer(technique="count", max_features=4000, binary=False)
+    X_count = count_vec.fit_transform(X_train_clean)
+
+    # 4. Binarized CountVectorizer (for BernoulliNB)
+    count_bin_vec = get_vectorizer(technique="count", max_features=4000, binary=True)
+    X_count_bin = count_bin_vec.fit_transform(X_train_clean)
+
+    stats = {
+        "TF-IDF (Continuous)": {
+            "Matrix Shape": X_tfidf.shape,
+            "Non-zero Entries": X_tfidf.nnz,
+            "Sparsity (%)": round((1.0 - X_tfidf.nnz / (X_tfidf.shape[0] * X_tfidf.shape[1])) * 100, 3),
+            "Max Value": round(float(X_tfidf.max()), 3),
+            "Min Non-zero": round(float(X_tfidf.data.min()), 3)
+        },
+        "TF-IDF (Binarized for BNB)": {
+            "Matrix Shape": X_tfidf_bin.shape,
+            "Non-zero Entries": X_tfidf_bin.nnz,
+            "Sparsity (%)": round((1.0 - X_tfidf_bin.nnz / (X_tfidf_bin.shape[0] * X_tfidf_bin.shape[1])) * 100, 3),
+            "Values Set": sorted(list(set(X_tfidf_bin.data.round(2)[:10])))
+        },
+        "CountVectorizer (Frequencies)": {
+            "Matrix Shape": X_count.shape,
+            "Non-zero Entries": X_count.nnz,
+            "Sparsity (%)": round((1.0 - X_count.nnz / (X_count.shape[0] * X_count.shape[1])) * 100, 3),
+            "Max Count": int(X_count.max()),
+            "Mean Non-zero Count": round(float(X_count.data.mean()), 3)
+        },
+        "CountVectorizer (Binarized for BNB)": {
+            "Matrix Shape": X_count_bin.shape,
+            "Non-zero Entries": X_count_bin.nnz,
+            "Sparsity (%)": round((1.0 - X_count_bin.nnz / (X_count_bin.shape[0] * X_count_bin.shape[1])) * 100, 3),
+            "Unique Values": sorted(list(set(X_count_bin.data.tolist())))
+        }
+    }
+    return stats, tfidf_vec.get_feature_names_out()[:10], count_vec.get_feature_names_out()[:10]
 
 
 if __name__ == "__main__":
@@ -78,10 +162,14 @@ if __name__ == "__main__":
     clean_df, _ = clean_data(raw_df)
     X_train, X_test, y_train, y_test = split_data(clean_df)
 
-    vectorizer = get_tfidf_vectorizer(max_features=3000)
-    transformer = TextPreprocessorTransformer()
+    inspection_results, tfidf_vocab_sample, count_vocab_sample = inspect_feature_extraction(X_train)
 
-    X_train_clean = transformer.transform(X_train)
-    X_train_tfidf = vectorizer.fit_transform(X_train_clean)
-    print(f"[INFO] TF-IDF Matrix shape: {X_train_tfidf.shape}")
-    print(f"[INFO] Sample vocabulary features: {list(vectorizer.get_feature_names_out()[:15])}")
+    print("\n================ FEATURE EXTRACTION COMPARISON ================")
+    for name, metrics in inspection_results.items():
+        print(f"\n[{name}]")
+        for k, v in metrics.items():
+            print(f"  - {k}: {v}")
+
+    print("\n[Sample TF-IDF Features]:", list(tfidf_vocab_sample))
+    print("[Sample CountVectorizer Features]:", list(count_vocab_sample))
+    print("================================================================")

@@ -1,10 +1,12 @@
 """
-Streamlit Web Application: SMS Spam Detection
+Streamlit Web Application: SMS Spam Intelligence Studio
 Subject: Research Methodologies (RM) - 7th Sem B.Tech CSE
+Factorial Experimental Study: 2 Feature Extractors x 4 Machine Learning Classifiers
 """
 
 import os
 import sys
+import json
 import joblib
 import pandas as pd
 import streamlit as st
@@ -23,7 +25,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- Premium Custom Styling (CSS) ---
+# --- Custom Styling (CSS) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -32,13 +34,12 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* Top Brand Banner */
     .hero-container {
         background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px;
-        padding: 28px 36px;
-        margin-bottom: 24px;
+        padding: 24px 32px;
+        margin-bottom: 20px;
         box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
     }
     .hero-badge {
@@ -54,11 +55,11 @@ st.markdown("""
         font-weight: 600;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     .hero-title {
         color: #ffffff;
-        font-size: 2.1rem;
+        font-size: 2.0rem;
         font-weight: 800;
         letter-spacing: -0.02em;
         margin: 0 0 8px 0;
@@ -67,17 +68,16 @@ st.markdown("""
         color: #94a3b8;
         font-size: 0.95rem;
         margin: 0;
-        max-width: 780px;
+        max-width: 820px;
         line-height: 1.5;
     }
 
-    /* Stat Cards */
     .metric-card {
         background: rgba(30, 41, 59, 0.7);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
-        padding: 16px 20px;
+        padding: 14px 18px;
         text-align: center;
         transition: transform 0.2s ease, border-color 0.2s ease;
     }
@@ -86,34 +86,33 @@ st.markdown("""
         border-color: rgba(99, 102, 241, 0.4);
     }
     .metric-value {
-        font-size: 1.65rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: #f8fafc;
         margin: 4px 0;
         letter-spacing: -0.02em;
     }
     .metric-label {
-        font-size: 0.76rem;
+        font-size: 0.74rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: #94a3b8;
         font-weight: 600;
     }
 
-    /* Verdict Cards */
     .verdict-card-spam {
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(185, 28, 28, 0.05) 100%);
         border: 1px solid rgba(239, 68, 68, 0.4);
         border-radius: 14px;
-        padding: 24px;
-        margin-top: 16px;
+        padding: 22px;
+        margin-top: 14px;
     }
     .verdict-card-ham {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(4, 120, 87, 0.05) 100%);
         border: 1px solid rgba(16, 185, 129, 0.4);
         border-radius: 14px;
-        padding: 24px;
-        margin-top: 16px;
+        padding: 22px;
+        margin-top: 14px;
     }
     .verdict-header {
         display: flex;
@@ -123,24 +122,23 @@ st.markdown("""
     }
     .verdict-title-spam {
         color: #f87171;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
         font-weight: 800;
         margin: 0;
     }
     .verdict-title-ham {
         color: #34d399;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
         font-weight: 800;
         margin: 0;
     }
     .verdict-desc {
         color: #cbd5e1;
-        font-size: 0.92rem;
+        font-size: 0.90rem;
         margin: 0;
         line-height: 1.5;
     }
 
-    /* Token Code Box */
     .token-box {
         background: #0f172a;
         border: 1px solid #334155;
@@ -152,84 +150,106 @@ st.markdown("""
         margin-top: 8px;
     }
 
-    /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
     }
     .stTabs [data-baseweb="tab"] {
         border-radius: 8px;
-        padding: 8px 20px;
+        padding: 8px 18px;
         font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- Model Loader ---
+# --- Model Registry & Loader ---
+MODEL_MAP = {
+    ("TF-IDF", "Linear Support Vector Machine"): "tfidf_plus_linear_svm.pkl",
+    ("TF-IDF", "Bernoulli Naive Bayes"): "tfidf_plus_bernoulli_naive_bayes.pkl",
+    ("TF-IDF", "Logistic Regression"): "tfidf_plus_logistic_regression.pkl",
+    ("TF-IDF", "Multinomial Naive Bayes"): "tfidf_plus_multinomial_naive_bayes.pkl",
+    ("CountVectorizer", "Linear Support Vector Machine"): "countvectorizer_plus_linear_svm.pkl",
+    ("CountVectorizer", "Bernoulli Naive Bayes"): "countvectorizer_plus_bernoulli_naive_bayes.pkl",
+    ("CountVectorizer", "Logistic Regression"): "countvectorizer_plus_logistic_regression.pkl",
+    ("CountVectorizer", "Multinomial Naive Bayes"): "countvectorizer_plus_multinomial_naive_bayes.pkl",
+}
+
+
 @st.cache_resource
-def load_trained_model():
-    model_path = os.path.join(os.path.dirname(__file__), "models", "best_model.pkl")
+def load_specific_pipeline(feature_tech: str, algorithm_name: str):
+    """
+    Loads one of the 8 trained pipelines from the models/ directory.
+    """
+    filename = MODEL_MAP.get((feature_tech, algorithm_name), "best_model.pkl")
+    model_path = os.path.join(os.path.dirname(__file__), "models", filename)
+
     if os.path.exists(model_path):
         return joblib.load(model_path)
     else:
-        from data_loader import load_raw_data, clean_data
-        from feature_extraction import split_data
-        from model_training import tune_models, save_model
-        raw_df = load_raw_data(os.path.join(os.path.dirname(__file__), "data", "SMSSpamCollection"))
-        clean_df, _ = clean_data(raw_df)
-        X_train, _, y_train, _ = split_data(clean_df)
-        tuned_models, _ = tune_models(X_train, y_train)
-        best_pipeline = tuned_models["Linear SVM"]
-        save_model(best_pipeline, model_path)
-        return best_pipeline
+        # Fallback to best_model.pkl if present
+        fallback_path = os.path.join(os.path.dirname(__file__), "models", "best_model.pkl")
+        if os.path.exists(fallback_path):
+            return joblib.load(fallback_path)
+        raise FileNotFoundError(f"Model file not found at {model_path}. Please execute src/evaluation.py first.")
+
+
+@st.cache_data
+def load_results_summary():
+    """
+    Loads the persistent evaluation metrics summary CSV.
+    """
+    csv_path = os.path.join(os.path.dirname(__file__), "reports", "results", "results_summary.csv")
+    if os.path.exists(csv_path):
+        return pd.read_csv(csv_path)
+    return None
 
 
 # --- Hero Section ---
 st.markdown("""
 <div class="hero-container">
-    <div class="hero-badge">🎓 Research Methodologies (RM) · 7th Sem Project</div>
-    <h1 class="hero-title">SMS Spam Detection & Empirical Analysis</h1>
+    <div class="hero-badge">🎓 Research Methodologies (RM) · 7th Sem CSE Project</div>
+    <h1 class="hero-title">SMS Spam Detection & Factorial ML Investigation</h1>
     <p class="hero-subtitle">
-        Comparative investigation of Supervised Machine Learning algorithms (Multinomial NB, Bernoulli NB, Logistic Regression, Linear SVM) on the official UCI SMS corpus with external benchmark validation against IEEE TENCON 2023.
+        Systematic empirical comparison of 2 Feature Extraction Techniques (TF-IDF vs. CountVectorizer) across 4 Supervised ML Classifiers (MNB, BNB, LR, Linear SVM) on the official UCI SMS corpus, benchmarked against IEEE TENCON 2023.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- Top Key Performance Indicator Cards ---
+# --- Top Key Performance Indicator Cards (Overall Top Model) ---
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 with kpi1:
     st.markdown("""
     <div class="metric-card">
-        <div class="metric-label">Model Accuracy</div>
+        <div class="metric-label">Top Test Accuracy</div>
         <div class="metric-value" style="color: #60a5fa;">98.16%</div>
-        <small style="color: #64748b;">Linear SVM (Test Set)</small>
+        <small style="color: #64748b;">TF-IDF + Linear SVM</small>
     </div>
     """, unsafe_allow_html=True)
 
 with kpi2:
     st.markdown("""
     <div class="metric-card">
-        <div class="metric-label">Spam Precision</div>
-        <div class="metric-value" style="color: #34d399;">96.58%</div>
-        <small style="color: #64748b;">Only 4 False Positives / 904</small>
+        <div class="metric-label">Peak Spam Precision</div>
+        <div class="metric-value" style="color: #34d399;">97.39%</div>
+        <small style="color: #64748b;">CountVec + Linear SVM (3 FP / 904)</small>
     </div>
     """, unsafe_allow_html=True)
 
 with kpi3:
     st.markdown("""
     <div class="metric-card">
-        <div class="metric-label">Spam Recall</div>
-        <div class="metric-value" style="color: #fbbf24;">88.28%</div>
-        <small style="color: #64748b;">113 / 128 Spam Blocked</small>
+        <div class="metric-label">Peak Spam Recall</div>
+        <div class="metric-value" style="color: #fbbf24;">89.06%</div>
+        <small style="color: #64748b;">CountVec + MNB (114 / 128 Spam)</small>
     </div>
     """, unsafe_allow_html=True)
 
 with kpi4:
     st.markdown("""
     <div class="metric-card">
-        <div class="metric-label">Spam F1-Score</div>
+        <div class="metric-label">Top Spam F1-Score</div>
         <div class="metric-value" style="color: #a78bfa;">92.24%</div>
-        <small style="color: #64748b;">Balanced Harmonic Mean</small>
+        <small style="color: #64748b;">Harmonic Balance (E4)</small>
     </div>
     """, unsafe_allow_html=True)
 
@@ -238,197 +258,276 @@ st.markdown("<br>", unsafe_allow_html=True)
 # --- Tabbed Navigation ---
 tab_classifier, tab_benchmarks, tab_ieee_compare, tab_methodology = st.tabs([
     "🔍 Live SMS Classifier",
-    "📊 Empirical Model Benchmarks",
-    "📑 IEEE Paper Comparison",
+    "📊 8-Model Factorial Benchmarks",
+    "📑 IEEE TENCON 2023 Comparison",
     "🔬 Research Methodology"
 ])
 
 
 # ==============================================================================
-# TAB 1: LIVE SMS CLASSIFIER
+# TAB 1: LIVE SMS CLASSIFIER (Interactive Model & Vectorizer Selection)
 # ==============================================================================
 with tab_classifier:
-    col_input, col_result = st.columns([1.1, 0.9], gap="large")
+    col_input, col_result = st.columns([1.15, 0.85], gap="large")
 
     with col_input:
-        st.subheader("Message Input & Test Cases")
+        st.subheader("1. Configure Pipeline & Input Message")
 
-        # Preset Chips
+        # Dynamic Model & Feature Selector
+        col_sel1, col_sel2 = st.columns(2)
+        with col_sel1:
+            selected_tech = st.selectbox(
+                "Feature Extraction Technique:",
+                ["TF-IDF", "CountVectorizer"],
+                index=0,
+                help="TF-IDF evaluates sublinear weighted term relevance; CountVectorizer computes absolute token occurrences."
+            )
+        with col_sel2:
+            selected_algo = st.selectbox(
+                "Machine Learning Algorithm:",
+                [
+                    "Linear Support Vector Machine",
+                    "Bernoulli Naive Bayes",
+                    "Logistic Regression",
+                    "Multinomial Naive Bayes"
+                ],
+                index=0,
+                help="Select one of the four supervised classifiers."
+            )
+
+        # Show currently selected pipeline benchmark pill
+        df_summary = load_results_summary()
+        if df_summary is not None:
+            match = df_summary[
+                (df_summary["Feature_Extraction"] == selected_tech) &
+                (df_summary["Algorithm"].str.contains(selected_algo.split()[0]))
+            ]
+            if not match.empty:
+                r = match.iloc[0]
+                st.caption(
+                    f"🎯 **Pipeline Benchmark ({selected_tech} + {selected_algo}):** "
+                    f"Accuracy: **{r['Accuracy']*100:.2f}%** | "
+                    f"Precision: **{r['Precision']*100:.2f}%** | "
+                    f"Recall: **{r['Recall']*100:.2f}%** | "
+                    f"F1: **{r['F1-Score']*100:.2f}%**"
+                )
+
+        st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+
+        # Preset test messages
         sample_options = {
             "Custom Message (Type Below)": "",
-            "🚨 Prize Scam": "WINNER!! As a valued network customer you have been selected to receive a £900 prize reward! Call 09061701461 to claim. Claim code KL341.",
-            "🚨 Urgent Phishing": "URGENT! Your mobile account has won a guaranteed £1000 cash prize. Reply CLAIM to 87121 immediately. Terms apply.",
-            "✅ Casual Chat": "Hey mate, are you coming over to the library to finish the research methodology assignment?",
+            "🚨 Prize Scam": "WINNER!! As a valued network customer you have been selected to receive a £900 prize reward! Call 09061701461 to claim. Claim code KL341. Valid 12 hours.",
+            "🚨 Urgent Phishing / Lottery": "URGENT! Your mobile number won 1,000,000 cash. Reply CLAIM to 88088 now. Terms apply £1.50 per message.",
+            "✅ Casual Meeting Chat": "Hey mate, are you coming over to the library to finish the research methodology assignment?",
             "✅ University Notice": "Dear Students, please submit your 7th Semester RM lab file by Friday 5 PM on the department portal."
         }
 
-        selected_key = st.selectbox(
-            "Select a pre-loaded test case or write your own:",
+        selected_sample_key = st.selectbox(
+            "Select an academic test sample or write custom text:",
             list(sample_options.keys())
         )
-        default_val = sample_options[selected_key]
+        default_val = sample_options[selected_sample_key]
 
         user_sms = st.text_area(
-            "SMS Message Text:",
+            "SMS Text Message:",
             value=default_val,
-            placeholder="Paste or type an SMS message to evaluate...",
-            height=130,
-            key="sms_input_area"
+            placeholder="Type or paste an SMS message to classify...",
+            height=125,
+            key="sms_input_text"
         )
 
         char_cnt = len(user_sms)
         word_cnt = len(user_sms.split())
-        st.caption(f"📊 Message Length: **{char_cnt} characters** | **{word_cnt} words**")
+        st.caption(f"📊 Message Metadata: **{char_cnt} characters** | **{word_cnt} words**")
 
+        # Explicit Classify Button - Fixes Trigger Bug!
         classify_btn = st.button("🛡️ Classify SMS Message", type="primary", use_container_width=True)
 
     with col_result:
-        st.subheader("Classification Verdict")
+        st.subheader("2. Empirical Classification Output")
 
-        if classify_btn or (user_sms and user_sms != ""):
+        # Prediction executes ONLY when user clicks the classify button!
+        if classify_btn:
             if not user_sms.strip():
-                st.info("👈 Enter an SMS message or select a pre-loaded example to run the classifier.")
+                st.warning("⚠️ Please provide a non-empty SMS text message to evaluate.")
             else:
-                model = load_trained_model()
-                pred = model.predict([user_sms])[0]
-                
-                # Predict probability if supported
-                probs = None
-                if hasattr(model, "predict_proba"):
-                    try:
-                        probs = model.predict_proba([user_sms])[0]
-                    except Exception:
-                        pass
+                try:
+                    pipeline = load_specific_pipeline(selected_tech, selected_algo)
+                    pred = pipeline.predict([user_sms])[0]
 
-                if pred == 1:
-                    st.markdown("""
-                    <div class="verdict-card-spam">
-                        <div class="verdict-header">
-                            <span style="font-size: 1.8rem;">🚨</span>
-                            <h3 class="verdict-title-spam">SPAM / FRAUDULENT MESSAGE</h3>
+                    # Probability score if calibrated
+                    probs = None
+                    if hasattr(pipeline, "predict_proba"):
+                        try:
+                            probs = pipeline.predict_proba([user_sms])[0]
+                        except Exception:
+                            pass
+
+                    if pred == 1:
+                        st.markdown("""
+                        <div class="verdict-card-spam">
+                            <div class="verdict-header">
+                                <span style="font-size: 1.8rem;">🚨</span>
+                                <h3 class="verdict-title-spam">SPAM / FRAUDULENT MESSAGE</h3>
+                            </div>
+                            <p class="verdict-desc">
+                                High-confidence detection of promotional lure, urgent monetary claim, or unauthorized solicitation patterns.
+                            </p>
                         </div>
-                        <p class="verdict-desc">
-                            High-confidence match with promotional spam, lottery fraud, or credential lure patterns. This message should be filtered and flagged for user protection.
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <div class="verdict-card-ham">
-                        <div class="verdict-header">
-                            <span style="font-size: 1.8rem;">✅</span>
-                            <h3 class="verdict-title-ham">HAM (LEGITIMATE MESSAGE)</h3>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <div class="verdict-card-ham">
+                            <div class="verdict-header">
+                                <span style="font-size: 1.8rem;">✅</span>
+                                <h3 class="verdict-title-ham">HAM (LEGITIMATE MESSAGE)</h3>
+                            </div>
+                            <p class="verdict-desc">
+                                Typical conversational, transactional, or informational characteristics. No unsolicited scam markers detected.
+                            </p>
                         </div>
-                        <p class="verdict-desc">
-                            Standard conversational, institutional, or transactional language characteristics. No unsolicited fraud markers detected.
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
 
-                if probs is not None:
-                    spam_pct = probs[1] * 100
-                    ham_pct = probs[0] * 100
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.write("**Model Probability Distribution:**")
-                    col_p1, col_p2 = st.columns(2)
-                    with col_p1:
-                        st.metric("Spam Confidence", f"{spam_pct:.1f}%")
-                    with col_p2:
-                        st.metric("Ham Confidence", f"{ham_pct:.1f}%")
-                    st.progress(float(probs[1]))
-                    st.caption("📌 *Note: Decision margins calibrated via Platt scaling on high-dimensional hyperplane distances.*")
+                    if probs is not None:
+                        spam_pct = probs[1] * 100
+                        ham_pct = probs[0] * 100
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.write(f"**Model Margin Breakdown ({selected_tech} + {selected_algo}):**")
+                        col_p1, col_p2 = st.columns(2)
+                        with col_p1:
+                            st.metric("Spam Probability", f"{spam_pct:.1f}%")
+                        with col_p2:
+                            st.metric("Ham Probability", f"{ham_pct:.1f}%")
+                        st.progress(float(probs[1]))
+                        st.caption("📌 *Note: Decision margins calibrated via Platt scaling on high-dimensional hyperplane distances.*")
 
-                # NLP Normalization
-                with st.expander("🔬 View NLP Text Normalization"):
-                    cleaned_tokens = preprocess_text(user_sms)
-                    st.markdown("**Stemmed & Filtered Root Tokens:**")
-                    st.markdown(f'<div class="token-box">{cleaned_tokens or "[All tokens filtered as generic stopwords]"}</div>', unsafe_allow_html=True)
+                    with st.expander("🔬 View NLP Text Normalization"):
+                        cleaned_tokens = preprocess_text(user_sms)
+                        st.markdown("**Stemmed & Filtered Root Tokens:**")
+                        st.markdown(f'<div class="token-box">{cleaned_tokens or "[All tokens filtered as generic stopwords]"}</div>', unsafe_allow_html=True)
+
+                except Exception as e:
+                    st.error(f"Error evaluating pipeline: {str(e)}")
         else:
-            st.info("👈 Enter an SMS message or select an example on the left, then click **Classify SMS Message**.")
+            st.info("👈 Select your pipeline configuration and message on the left, then click **Classify SMS Message** to evaluate.")
 
 
 # ==============================================================================
-# TAB 2: EMPIRICAL MODEL BENCHMARKS
+# TAB 2: 8-MODEL FACTORIAL BENCHMARKS
 # ==============================================================================
 with tab_benchmarks:
-    st.subheader("Model Performance on Untouched Test Set (1,032 Samples)")
-    st.write("All algorithms were evaluated on a stratified 20% test partition (904 Ham, 128 Spam) with zero data leakage.")
+    st.subheader("Factorial Performance Matrix: 2 Feature Extractors x 4 Classifiers")
+    st.write("All 8 experimental combinations evaluated on the untouched test partition (1,032 samples: 904 Ham, 128 Spam) under identical stratified conditions.")
 
-    # Results Table
-    df_eval = pd.DataFrame([
-        {"Algorithm": "Linear Support Vector Machine (Linear SVM)", "Accuracy": "98.16%", "Precision": "96.58%", "Recall": "88.28%", "F1-Score": "92.24%", "False Positives": "4 / 904"},
-        {"Algorithm": "Bernoulli Naive Bayes (BNB)", "Accuracy": "98.06%", "Precision": "97.37%", "Recall": "86.72%", "F1-Score": "91.74%", "False Positives": "3 / 904"},
-        {"Algorithm": "Logistic Regression (LR)", "Accuracy": "97.97%", "Precision": "96.52%", "Recall": "86.72%", "F1-Score": "91.36%", "False Positives": "4 / 904"},
-        {"Algorithm": "Multinomial Naive Bayes (MNB)", "Accuracy": "97.77%", "Precision": "94.87%", "Recall": "86.72%", "F1-Score": "90.61%", "False Positives": "6 / 904"}
-    ])
-    st.dataframe(df_eval, use_container_width=True, hide_index=True)
+    df_results = load_results_summary()
+    if df_results is not None:
+        # Display filter
+        filter_opt = st.radio(
+            "Filter Evaluation Combinations:",
+            ["All 8 Experiments", "TF-IDF Vectorizer Only", "CountVectorizer Only"],
+            horizontal=True
+        )
 
-    col_fig1, col_fig2 = st.columns(2)
-    with col_fig1:
-        st.subheader("Confusion Matrix Grid")
-        cm_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "confusion_matrices.png")
-        if os.path.exists(cm_path):
-            st.image(cm_path, use_container_width=True)
-        else:
-            st.warning("Confusion matrix chart not found. Run src/evaluation.py to generate.")
+        df_display = df_results.copy()
+        if filter_opt == "TF-IDF Vectorizer Only":
+            df_display = df_display[df_display["Feature_Extraction"] == "TF-IDF"]
+        elif filter_opt == "CountVectorizer Only":
+            df_display = df_display[df_display["Feature_Extraction"] == "CountVectorizer"]
 
-    with col_fig2:
-        st.subheader("Metric Comparison Bar Chart")
-        bar_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "model_comparison_barchart.png")
-        if os.path.exists(bar_path):
-            st.image(bar_path, use_container_width=True)
-        else:
-            st.warning("Model comparison bar chart not found. Run src/evaluation.py to generate.")
+        # Format percentage columns for display
+        for col in ["Accuracy", "Precision", "Recall", "F1-Score"]:
+            df_display[col] = (df_display[col] * 100).round(2).astype(str) + "%"
+
+        st.dataframe(
+            df_display[[
+                "Experiment", "Feature_Extraction", "Algorithm",
+                "Accuracy", "Precision", "Recall", "F1-Score",
+                "FP (False Alarm)", "FN (Missed Spam)"
+            ]],
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.warning("Results summary not loaded. Run src/evaluation.py to generate reports/results/results_summary.csv.")
+
+    st.divider()
+
+    # Visual Comparison Charts
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        st.subheader("F1-Score Comparison across Experiments")
+        f1_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "f1_comparison.png")
+        if os.path.exists(f1_path):
+            st.image(f1_path, use_container_width=True)
+
+    with col_c2:
+        st.subheader("Feature Extraction Aggregated Comparison")
+        feat_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "feature_extraction_comparison.png")
+        if os.path.exists(feat_path):
+            st.image(feat_path, use_container_width=True)
+
+    st.subheader("8-Panel Confusion Matrix Grid")
+    cm_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "confusion_matrices_all8.png")
+    if os.path.exists(cm_path):
+        st.image(cm_path, use_container_width=True)
 
 
 # ==============================================================================
-# TAB 3: IEEE PAPER COMPARISON
+# TAB 3: IEEE TENCON 2023 BENCHMARK COMPARISON
 # ==============================================================================
 with tab_ieee_compare:
-    st.subheader("Comparison with Published IEEE Reference Study")
+    st.subheader("Empirical Benchmark Comparison with IEEE TENCON 2023 Study")
     st.markdown("""
-    **Reference Study:** *A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)*  
+    **Reference Paper:** *A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)*  
+    *Authors:* Robert G. de Luna et al., Polytechnic University of the Philippines  
     *Conference:* IEEE Region 10 Conference (TENCON 2023), Chiang Mai, Thailand
     """)
 
-    df_paper = pd.DataFrame([
+    df_ieee_table = pd.DataFrame([
         {
-            "Algorithm": "Bernoulli Naive Bayes",
-            "IEEE TENCON 2023 (Reported)": "Acc: 96.63% | Prec: 98.44% | Rec: 95.52% | F1: 92.78%",
-            "Our Project (Observed)": "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%",
-            "Academic Observation": "Top model in the reference paper. Achieved near-identical F1-score in our study with higher overall accuracy."
+            "Algorithm": "Bernoulli Naive Bayes (BNB)",
+            "IEEE TENCON 2023 Published Benchmark": "Acc: 96.6333% | Prec: 98.4431% | Rec: 95.5174% | F1: 92.7835%",
+            "Our Experimental Result (CountVec)": "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%",
+            "Our Experimental Result (TF-IDF)": "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%",
+            "Academic Note": "Top model in the IEEE study. Achieved near-identical F1 with higher accuracy across our natural distribution."
+        },
+        {
+            "Algorithm": "Random Forest Classifier (RFC)",
+            "IEEE TENCON 2023 Published Benchmark": "Acc: 96.0297% | Prec: 98.5228% | Rec: 94.8699% | F1: 91.1408%",
+            "Our Experimental Result (CountVec)": "Not included in 4 primary linear algorithms",
+            "Our Experimental Result (TF-IDF)": "Not included in 4 primary linear algorithms",
+            "Academic Note": "Important Correction: 96.0297% in Table VII belongs to Random Forest, NOT Multinomial Naive Bayes."
+        },
+        {
+            "Algorithm": "Logistic Regression (LR)",
+            "IEEE TENCON 2023 Published Benchmark": "Acc: 95.8709% | Prec: 98.7711% | Rec: 93.7399% | F1: 89.2555%",
+            "Our Experimental Result (CountVec)": "Acc: 97.87% | Prec: 97.32% | Rec: 85.16% | F1: 90.83%",
+            "Our Experimental Result (TF-IDF)": "Acc: 97.97% | Prec: 96.52% | Rec: 86.72% | F1: 91.36%",
+            "Academic Note": "Strong linear baseline across both studies. Sublinear TF-IDF scaling improved our F1-score to 91.36%."
         },
         {
             "Algorithm": "Linear Support Vector Machine",
-            "IEEE TENCON 2023 (Reported)": "Acc: 94.57% (Default parameters, unoptimized)",
-            "Our Project (Observed)": "Acc: 98.16% | Prec: 96.58% | Rec: 88.28% | F1: 92.24%",
-            "Academic Observation": "The IEEE paper evaluated SVC only on default settings. Hyperparameter tuning with TF-IDF bigrams made it our #1 top model."
-        },
-        {
-            "Algorithm": "Logistic Regression",
-            "IEEE TENCON 2023 (Reported)": "Acc: 95.87% | Prec: 98.77% | Rec: 93.74% | F1: 89.26%",
-            "Our Project (Observed)": "Acc: 97.97% | Prec: 96.52% | Rec: 86.72% | F1: 91.36%",
-            "Academic Observation": "Strong linear baseline in both studies; sublinear TF-IDF scaling improved our accuracy and F1 score."
-        },
-        {
-            "Algorithm": "Multinomial Naive Bayes",
-            "IEEE TENCON 2023 (Reported)": "Acc: 96.03% | Prec: 95.59%",
-            "Our Project (Observed)": "Acc: 97.77% | Prec: 94.87% | Rec: 86.72% | F1: 90.61%",
-            "Academic Observation": "Highly competitive with Laplace smoothing (alpha=0.1)."
+            "IEEE TENCON 2023 Published Benchmark": "Acc: 94.5684% (Default CV, unoptimized in Table VII)",
+            "Our Experimental Result (CountVec)": "Acc: 98.16% | Prec: 97.39% | Rec: 87.50% | F1: 92.18%",
+            "Our Experimental Result (TF-IDF)": "Acc: 98.16% | Prec: 96.58% | Rec: 88.28% | F1: 92.24%",
+            "Academic Note": "Omitted from Table VII optimization in the IEEE study. In our study, tuning made it our #1 top performing model."
         }
     ])
-    st.dataframe(df_paper, use_container_width=True, hide_index=True)
+    st.dataframe(df_ieee_table, use_container_width=True, hide_index=True)
 
-    comp_fig_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "paper_vs_our_comparison.png")
-    if os.path.exists(comp_fig_path):
-        st.image(comp_fig_path, caption="Figure: Accuracy Comparison between IEEE TENCON 2023 and Our Study", use_container_width=True)
+    paper_fig_path = os.path.join(os.path.dirname(__file__), "reports", "figures", "paper_vs_our_comparison.png")
+    if os.path.exists(paper_fig_path):
+        st.image(paper_fig_path, caption="Figure: Accuracy Benchmark between IEEE TENCON 2023 and Our Dual Feature Extractions", use_container_width=True)
 
     st.markdown("""
-    ### Critical Methodological Distinctions:
-    1. **Natural vs. Artificial Class Balance:**  
-       The IEEE paper undersampled ham messages to force an artificial **60:40 partition**. Our project preserved the real-world **87.6% Ham : 12.4% Spam** natural distribution. Artificially increasing spam proportion inflates recall (95.5% vs 88.3%) because spam messages occur at 3x their real-world frequency.
-    2. **Word Embedding Strategy:**  
-       The IEEE paper selected CountVectorizer (raw token count). We employed **Sublinear TF-IDF with unigrams and bigrams**, which penalizes common non-informative words while capturing multi-word phishing phrases (*"free entry"*, *"cash prize"*).
+    ### Key Methodological Differences & Academic Disclaimers:
+    1. **Class Balancing Strategy:**  
+       The IEEE authors undersampled ham messages to impose an artificial **60:40 Ham-to-Spam partition** (1,930 ham, 1,218 spam). Our study preserved the natural real-world distribution (**87.6% Ham : 12.4% Spam**). Artificially boosting spam prevalence elevates recall (95.5% vs 88.3%) because spam patterns appear at triple their true incidence.
+    2. **Feature Extraction Philosophy:**  
+       The IEEE authors adopted CountVectorizer based on an initial MNB check. Our factorial study reveals that while CountVectorizer works well for Naive Bayes, **TF-IDF with sublinear scaling achieves higher F1 and lower false alarms for Linear SVM and Logistic Regression**.
+    3. **Controlled Equivalence Disclaimer:**  
+       This comparison represents an **external benchmark validation**, not a direct controlled ablation, due to differences in corpora and sampling methodologies.
     """)
 
 
@@ -436,7 +535,7 @@ with tab_ieee_compare:
 # TAB 4: RESEARCH METHODOLOGY
 # ==============================================================================
 with tab_methodology:
-    st.subheader("Research Methodology & Implementation Details")
+    st.subheader("Research Methodology & Experimental Design")
     col_m1, col_m2 = st.columns(2)
 
     with col_m1:
@@ -444,28 +543,29 @@ with tab_methodology:
         #### 1. Dataset Provenance & Cleaning
         - **Source:** UCI Machine Learning Repository (SMS Spam Collection).
         - **Total Raw Samples:** 5,574 messages.
-        - **Missing Values:** Zero null values.
+        - **Missing Values:** Zero null entries across all records.
         - **Deduplication:** 414 duplicate messages dropped to prevent synthetic score inflation.
-        - **Cleaned Total:** 5,160 unique messages (4,518 Ham, 642 Spam).
+        - **Cleaned Total:** 5,160 unique messages (4,518 Ham [87.56%], 642 Spam [12.44%]).
 
         #### 2. NLP Preprocessing Pipeline
-        - **Case Normalization:** Uniform lowercase conversion.
-        - **Punctuation & Noise Stripping:** Regular expression removal of URLs, email handles, and non-alphanumeric noise.
-        - **Stopword Filtering:** Removal of high-frequency English stopwords.
+        - **Lowercasing:** Uniform case normalization.
+        - **Noise Stripping:** Regular expression removal of URLs, emails, and punctuation.
+        - **Whitespace Tokenization:** Splitting text into discrete words.
+        - **Stopword Removal:** Eliminating non-informative English stopwords.
         - **Stemming:** Morphological word reduction using Porter Stemmer.
         """)
 
     with col_m2:
         st.markdown("""
-        #### 3. Feature Extraction
-        - **Vectorization:** TF-IDF with sublinear term-frequency scaling.
-        - **Vocabulary:** 4,000 maximum n-gram features (unigrams + bigrams).
-        - **Bernoulli Handling:** Strict binary presence/absence indicator representation.
+        #### 3. Dual Feature Extraction
+        - **TF-IDF Vectorizer:** Sublinear TF scaling with unigrams and bigrams (4,000 max features).
+        - **CountVectorizer:** Raw token counts with unigrams and bigrams (4,000 max features).
+        - **Bernoulli Handling:** Strict binary indicator matrix ($x_{ij} \in \{0, 1\}$) for both representations.
 
         #### 4. Data Leakage Prevention
-        - **Stratified Splitting:** 80% train (4,128 messages), 20% test (1,032 messages).
-        - **Pipelines:** Feature fitting and vocabulary generation restricted strictly to training partitions.
-        - **Tuning:** Stratified 5-Fold Cross Validation via GridSearchCV.
+        - **Stratified 80:20 Split:** 4,128 training messages, 1,032 testing messages.
+        - **Pipeline Encapsulation:** Preprocessing and vectorizer fitting restricted exclusively to training folds.
+        - **Tuning:** Stratified 5-Fold Cross Validation via GridSearchCV optimizing for Spam F1-Score.
         """)
 
 # Footer

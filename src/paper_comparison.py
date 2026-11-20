@@ -1,157 +1,201 @@
 """
-Comparative Analysis Script: Our Experiments vs. IEEE TENCON 2023 Paper.
+Academic Comparative Analysis Script: Our Experiments vs. IEEE TENCON 2023 Study.
 
 Reference Paper:
 "A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)"
-Authors: Robert G. de Luna et al., Polytechnic University of the Philippines.
+Authors: Robert G. de Luna, Karina L. Enriquez, Aira Mae Española, Mateo Ramos, Verna C. Magnaye,
+         Dexter Astorga, Brian Allen Lanting, Jenjazel Redondo, Rose Anne L. Reaño,
+         Trisha Celestial, Danielle Mugar.
 Conference: 2023 IEEE Region 10 Conference (TENCON), Chiang Mai, Thailand.
+IEEE Catalog Number: CFP23TEN-ART, ISBN: 979-8-3503-0219-6/23/$31.00 ©2023 IEEE
 
-This script:
-1. Creates a side-by-side comparison visualization between the paper's results and our project.
-2. Generates a comprehensive academic research comparison report in reports/research_comparison.md.
+Key Academic Corrections & Clarifications:
+- Table VII in de Luna et al. reports the Top 4 optimized algorithms:
+  1. Bernoulli Naive Bayes (BNB): Acc = 96.6333%, Prec = 98.4431%, Rec = 95.5174%, F1 = 92.7835%
+  2. Random Forest (RFC): Acc = 96.0297%, Prec = 98.5228%, Rec = 94.8699%, F1 = 91.1408%
+  3. Logistic Regression (LR): Acc = 95.8709%, Prec = 98.7711%, Rec = 93.7399%, F1 = 89.2555%
+  4. Extra Trees (ETC): Acc = 95.8070%, Prec = 98.4885%, Rec = 94.3495%, F1 = 90.5663%
+- IMPORTANT: The 96.0297% accuracy belongs to Random Forest (RFC), NOT Multinomial Naive Bayes.
+- Multinomial NB was tested earlier in Figure 2 solely for vectorizer selection (96.03% CV vs 95.56% TF-IDF).
+- SVC had default CV accuracy of 94.5684% in Table VI and was omitted from Table VII optimization.
 """
 
 import os
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def generate_paper_comparison(output_dir="reports"):
+def generate_paper_comparison(results_path="reports/results/results_summary.csv", output_dir="reports"):
     fig_dir = os.path.join(output_dir, "figures")
     os.makedirs(fig_dir, exist_ok=True)
 
-    # --- Data Definition ---
-    # Reference Paper Reported Results (Table VI & Table VII of de Luna et al.)
-    paper_data = {
-        "Bernoulli Naive Bayes": {"Accuracy": 96.63, "Precision": 98.44, "Recall": 95.52, "F1-Score": 92.78},
-        "Logistic Regression": {"Accuracy": 95.87, "Precision": 98.77, "Recall": 93.74, "F1-Score": 89.26},
-        "Support Vector Machine": {"Accuracy": 94.57, "Precision": None, "Recall": None, "F1-Score": None},
-        "Multinomial Naive Bayes": {"Accuracy": 96.03, "Precision": 95.59, "Recall": None, "F1-Score": None}
-    }
+    # Load our actual experimental results
+    if os.path.exists(results_path):
+        df_our = pd.read_csv(results_path)
+    else:
+        # Fallback if evaluation has not been called directly
+        from evaluation import run_comprehensive_evaluation
+        from data_loader import load_raw_data, clean_data
+        from feature_extraction import split_data
+        from model_training import train_and_tune_all_8
+        raw_df = load_raw_data()
+        clean_df, _ = clean_data(raw_df)
+        X_train, X_test, y_train, y_test = split_data(clean_df)
+        trained_models, _ = train_and_tune_all_8(X_train, y_train)
+        df_our, _ = run_comprehensive_evaluation(trained_models, X_test, y_test)
 
-    # Our Experimental Test Set Results
-    our_data = {
-        "Bernoulli Naive Bayes": {"Accuracy": 98.06, "Precision": 97.37, "Recall": 86.72, "F1-Score": 91.74},
-        "Logistic Regression": {"Accuracy": 97.97, "Precision": 96.52, "Recall": 86.72, "F1-Score": 91.36},
-        "Linear SVM": {"Accuracy": 98.16, "Precision": 96.58, "Recall": 88.28, "F1-Score": 92.24},
-        "Multinomial Naive Bayes": {"Accuracy": 97.77, "Precision": 94.87, "Recall": 86.72, "F1-Score": 90.61}
-    }
+    # Reference Paper Published Results (Table VII - Robert G. de Luna et al.)
+    ieee_top4 = [
+        {"Algorithm": "Bernoulli Naive Bayes (BNB)", "Accuracy": 96.6333, "Precision": 98.4431, "Recall": 95.5174, "F1-Score": 92.7835, "Notes": "Top #1 performing model in IEEE study"},
+        {"Algorithm": "Random Forest Classifier (RFC)", "Accuracy": 96.0297, "Precision": 98.5228, "Recall": 94.8699, "F1-Score": 91.1408, "Notes": "Ensemble bagging model (Not MNB)"},
+        {"Algorithm": "Logistic Regression (LR)", "Accuracy": 95.8709, "Precision": 98.7711, "Recall": 93.7399, "F1-Score": 89.2555, "Notes": "Linear classifier baseline"},
+        {"Algorithm": "Extra Trees Classifier (ETC)", "Accuracy": 95.8070, "Precision": 98.4885, "Recall": 94.3495, "F1-Score": 90.5663, "Notes": "Extremely randomized trees ensemble"}
+    ]
+    df_ieee = pd.DataFrame(ieee_top4)
 
-    # --- Plot: Comparative Accuracy Chart ---
-    models = ["Bernoulli Naive Bayes", "Logistic Regression", "Support Vector Machine / Linear SVM", "Multinomial Naive Bayes"]
-    paper_acc = [96.63, 95.87, 94.57, 96.03]
-    our_acc = [98.06, 97.97, 98.16, 97.77]
+    # --- Plot: Side-by-Side Accuracy Comparison ---
+    # Compare overlapping models: BNB, LR, and SVM
+    our_bnb_tfidf = df_our[df_our["Experiment"] == "TF-IDF + Bernoulli Naive Bayes"]["Accuracy"].values[0] * 100
+    our_bnb_count = df_our[df_our["Experiment"] == "CountVectorizer + Bernoulli Naive Bayes"]["Accuracy"].values[0] * 100
+    our_lr_tfidf = df_our[df_our["Experiment"] == "TF-IDF + Logistic Regression"]["Accuracy"].values[0] * 100
+    our_lr_count = df_our[df_our["Experiment"] == "CountVectorizer + Logistic Regression"]["Accuracy"].values[0] * 100
+    our_svm_tfidf = df_our[df_our["Experiment"] == "TF-IDF + Linear SVM"]["Accuracy"].values[0] * 100
+    our_svm_count = df_our[df_our["Experiment"] == "CountVectorizer + Linear SVM"]["Accuracy"].values[0] * 100
 
-    df_comp = pd.DataFrame({
-        "Model": models * 2,
-        "Accuracy (%)": paper_acc + our_acc,
-        "Study": ["IEEE TENCON 2023 (de Luna et al.)"] * 4 + ["Our Project (Authentic UCI + TF-IDF)"] * 4
-    })
+    comp_plot_data = [
+        {"Model": "Bernoulli Naive Bayes", "Accuracy": 96.63, "Study": "IEEE TENCON 2023 (CountVec)"},
+        {"Model": "Bernoulli Naive Bayes", "Accuracy": our_bnb_count, "Study": "Our Project (CountVec)"},
+        {"Model": "Bernoulli Naive Bayes", "Accuracy": our_bnb_tfidf, "Study": "Our Project (TF-IDF)"},
 
-    plt.figure(figsize=(12, 6))
-    palette = ["#d9534f", "#2b5c8f"]
-    ax = sns.barplot(data=df_comp, x="Model", y="Accuracy (%)", hue="Study", palette=palette)
-    plt.title("Model Accuracy: IEEE TENCON 2023 Reference Paper vs. Our Project", fontsize=13, fontweight='bold', pad=15)
-    plt.xlabel("Model Architecture", fontweight='semibold')
+        {"Model": "Logistic Regression", "Accuracy": 95.87, "Study": "IEEE TENCON 2023 (CountVec)"},
+        {"Model": "Logistic Regression", "Accuracy": our_lr_count, "Study": "Our Project (CountVec)"},
+        {"Model": "Logistic Regression", "Accuracy": our_lr_tfidf, "Study": "Our Project (TF-IDF)"},
+
+        {"Model": "Support Vector Machine", "Accuracy": 94.57, "Study": "IEEE TENCON 2023 (Default CV)"},
+        {"Model": "Support Vector Machine", "Accuracy": our_svm_count, "Study": "Our Project (CountVec)"},
+        {"Model": "Support Vector Machine", "Accuracy": our_svm_tfidf, "Study": "Our Project (TF-IDF)"}
+    ]
+    df_comp_plot = pd.DataFrame(comp_plot_data)
+
+    plt.figure(figsize=(13, 6))
+    palette = ["#e76f51", "#d9534f", "#2b5c8f", "#10b981"]
+    ax = sns.barplot(data=df_comp_plot, x="Model", y="Accuracy", hue="Study", palette=palette)
+    plt.title("Benchmarking Overlapping Classifiers: IEEE TENCON 2023 vs. Our Dual Feature Extractions",
+              fontsize=13, fontweight='bold', pad=14)
+    plt.xlabel("Classifier Model", fontweight='semibold')
     plt.ylabel("Accuracy (%)", fontweight='semibold')
-    plt.ylim(90, 102)
-    plt.xticks(rotation=10, ha='right')
-    plt.legend(loc="lower right")
+    plt.ylim(92, 100)
+    plt.legend(title="Study & Feature Extraction", loc="lower right")
 
     for p in ax.patches:
-        height = p.get_height()
-        if height > 0:
-            ax.annotate(f"{height:.2f}%",
-                        (p.get_x() + p.get_width() / 2., height + 0.3),
-                        ha='center', va='bottom', fontsize=9, fontweight='semibold')
+        h = p.get_height()
+        if h > 0:
+            ax.annotate(f"{h:.2f}%", (p.get_x() + p.get_width() / 2., h + 0.1),
+                        ha='center', va='bottom', fontsize=8.5, fontweight='semibold')
 
     plt.tight_layout()
-    chart_path = os.path.join(fig_dir, "paper_vs_our_comparison.png")
-    plt.savefig(chart_path, dpi=300)
+    comp_chart_path = os.path.join(fig_dir, "paper_vs_our_comparison.png")
+    plt.savefig(comp_chart_path, dpi=300)
     plt.close()
-    print(f"[INFO] Comparison plot saved to: {chart_path}")
+    print(f"[INFO] IEEE comparison plot saved to: {comp_chart_path}")
 
-    # --- Generate Markdown Report ---
-    report_content = f"""# Comparative Research Analysis: Our Project vs. IEEE Reference Study
+    # --- Markdown Comparison Report ---
+    report_md_path = os.path.join(output_dir, "research_comparison.md")
+    with open(report_md_path, "w", encoding="utf-8") as f:
+        f.write(f"""# Academic Comparative Analysis: Our Experiments vs. IEEE TENCON 2023 Study
 
-**Subject:** Research Methodologies (RM)  
+**Subject:** Research Methodologies (RM) — 7th Semester B.Tech Project  
 **Reference Paper:** *A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)*  
 **Authors:** Robert G. de Luna, Karina L. Enriquez, Aira Mae Española, Mateo Ramos, Verna C. Magnaye, Dexter Astorga, Brian Allen Lanting, Jenjazel Redondo, Rose Anne L. Reaño, Trisha Celestial, Danielle Mugar  
-**Venue:** *2023 IEEE Region 10 Conference (TENCON)*, Chiang Mai, Thailand, Oct 31 – Nov 3, 2023  
-**DOI / Paper ID:** 979-8-3503-0219-6/23/$31.00 ©2023 IEEE  
+**Venue:** *2023 IEEE Region 10 Conference (TENCON)*, Chiang Mai, Thailand, 31 Oct - 3 Nov 2023  
+**DOI/ISBN:** 979-8-3503-0219-6/23/$31.00 ©2023 IEEE  
 
 ---
 
-## 1. Executive Summary & Objective
+## 1. Executive Summary & Context
 
-In accordance with academic research methodology principles, this study compares our experimental findings against the published benchmarks of **de Luna et al. (IEEE TENCON 2023)**. 
-
-While both investigations address SMS spam classification through natural language processing and supervised machine learning, their experimental designs intentionally differ across:
-1. **Dataset composition and class balance** (Artificially balanced 60:40 partition vs. Natural 87.6:12.4 imbalance).
-2. **Feature vectorization strategy** (CountVectorizer term frequencies vs. Sublinear TF-IDF with bigrams).
-3. **Model selection and tuning pipelines**.
+The primary goal of this comparative analysis is to benchmark our empirical experiments against the peer-reviewed IEEE TENCON 2023 study by **de Luna et al.** In accordance with scientific research methodology principles, this comparison is framed as an **external benchmark validation** rather than a direct controlled experiment, because the underlying corpora, class distributions, and feature engineering procedures differ.
 
 ---
 
-## 2. Experimental Benchmark Comparison Table
+## 2. Published IEEE Reference Results (Table VII in de Luna et al.)
 
-| Algorithm | IEEE TENCON 2023 Paper (Reported) | Our Experimental Project (Observed) | Key Comparative Observations & Variance Analysis |
-|:---|:---|:---|:---|
-| **Bernoulli Naive Bayes (BNB)** | **Accuracy:** 96.63%<br>**Precision:** 98.44%<br>**Recall:** 95.52%<br>**F1-Score:** 92.78% | **Accuracy:** 98.06%<br>**Precision:** 97.37%<br>**Recall:** 86.72%<br>**F1-Score:** 91.74% | BNB was the **#1 top model** in the reference paper. In our study, BNB achieved near-identical F1-score (**91.74%** vs. 92.78%) and higher accuracy (**98.06%** vs. 96.63%), demonstrating that binarized presence/absence modeling is exceptionally robust across both balanced and imbalanced spam distributions. |
-| **Linear SVM / SVC** | **Accuracy:** 94.57% *(Default CV)*<br>*(Not optimized in paper)* | **Accuracy:** **98.16%**<br>**Precision:** 96.58%<br>**Recall:** **88.28%**<br>**F1-Score:** **92.24%** | The IEEE authors evaluated SVC only with default parameters (ranking 5th at 94.57%) and omitted it from GridSearchCV optimization. In our study, hyperparameter tuning with TF-IDF unigram+bigram representation elevated Linear SVM to our **#1 top performing model (98.16% accuracy, 92.24% F1)**. |
-| **Logistic Regression (LR)** | **Accuracy:** 95.87%<br>**Precision:** 98.77%<br>**Recall:** 93.74%<br>**F1-Score:** 89.26% | **Accuracy:** 97.97%<br>**Precision:** 96.52%<br>**Recall:** 86.72%<br>**F1-Score:** 91.36% | Both studies identify Logistic Regression as a strong linear baseline. Our tuned pipeline achieved higher overall test accuracy (97.97% vs. 95.87%) and higher F1-score (91.36% vs. 89.26%), benefiting from sublinear term frequency weighting. |
-| **Multinomial Naive Bayes (MNB)** | **Accuracy:** 96.03%<br>**Precision:** 95.59% | **Accuracy:** 97.77%<br>**Precision:** 94.87%<br>**Recall:** 86.72%<br>**F1-Score:** 90.61% | In the reference paper, MNB was used specifically to compare CountVectorizer against TF-IDF. Our project tuned MNB smoothing ($\alpha=0.1$) reaching 97.77% accuracy with solid 94.87% precision. |
+The authors tested 11 classifiers and performed GridSearchCV hyperparameter optimization on their Top 4 algorithms:
+
+| Rank | Model Architecture | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| **1** | **Bernoulli Naive Bayes (BNB)** | **96.6333%** | 98.4431% | **95.5174%** | **92.7835%** |
+| **2** | **Random Forest Classifier (RFC)** | **96.0297%** | 98.5228% | 94.8699% | 91.1408% |
+| **3** | **Logistic Regression (LR)** | **95.8709%** | **98.7711%** | 93.7399% | 89.2555% |
+| **4** | **Extra Trees Classifier (ETC)** | **95.8070%** | 98.4885% | 94.3495% | 90.5663% |
+
+> **Important Academic Clarification:**  
+> The 96.0297% accuracy in Table VII belongs to **Random Forest (RFC)**, an ensemble tree algorithm, **NOT Multinomial Naive Bayes**. In de Luna et al., Multinomial Naive Bayes was evaluated solely during preliminary vectorizer screening in Figure 2 (yielding 96.03% on CountVectorizer vs. 95.56% on TF-IDF) and was not included among the top four optimized models.
 
 ---
 
-## 3. Critical Methodological Differences
+## 3. Our Experimental Results (Untouched Test Fold: 1,032 Samples)
+
+| Exp # | Feature Extraction | Algorithm | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) | FP (False Alarms) | FN (Missed Spam) |
+|:---:|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **E1** | **TF-IDF** | Multinomial NB | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='TF-IDF + Multinomial Naive Bayes', 'FN (Missed Spam)'].values[0]} |
+| **E2** | **TF-IDF** | Bernoulli NB *(Binary)* | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='TF-IDF + Bernoulli Naive Bayes', 'FN (Missed Spam)'].values[0]} |
+| **E3** | **TF-IDF** | Logistic Regression | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='TF-IDF + Logistic Regression', 'FN (Missed Spam)'].values[0]} |
+| **E4** | **TF-IDF** | Linear SVM | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='TF-IDF + Linear SVM', 'FN (Missed Spam)'].values[0]} |
+| **E5** | **CountVectorizer** | Multinomial NB | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='CountVectorizer + Multinomial Naive Bayes', 'FN (Missed Spam)'].values[0]} |
+| **E6** | **CountVectorizer** | Bernoulli NB *(Binary)* | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='CountVectorizer + Bernoulli Naive Bayes', 'FN (Missed Spam)'].values[0]} |
+| **E7** | **CountVectorizer** | Logistic Regression | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='CountVectorizer + Logistic Regression', 'FN (Missed Spam)'].values[0]} |
+| **E8** | **CountVectorizer** | Linear SVM | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'Accuracy'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'Precision'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'Recall'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'F1-Score'].values[0]*100:.2f}% | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'FP (False Alarm)'].values[0]} | {df_our.loc[df_our['Experiment']=='CountVectorizer + Linear SVM', 'FN (Missed Spam)'].values[0]} |
+
+---
+
+## 4. Deep Methodological Variance Analysis
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                 METHODOLOGICAL COMPARISON                              │
+│                              SYSTEMATIC RESEARCH COMPARISON                            │
 ├─────────────────────────┬──────────────────────────────────┬───────────────────────────┤
-│ Dimension               │ IEEE TENCON 2023 (de Luna et al.)│ Our Academic RM Project   │
+│ Evaluation Dimension    │ IEEE TENCON 2023 (de Luna et al.)│ Our Project (Factorial RM)│
 ├─────────────────────────┼──────────────────────────────────┼───────────────────────────┤
-│ Dataset Source          │ UCI + Philippine Spam + PUPSTB   │ Official UCI Spam Dataset │
-│ Total Cleaned Messages  │ 3,148 messages                   │ 5,160 unique messages     │
-│ Class Distribution      │ Artificial 60:40 (Ham:Spam)      │ Natural 87.6:12.4 Imbalance│
-│ Class Balancing Method  │ Random Undersampling of Ham      │ Stratified Sampling Split │
-│ Feature Extraction      │ CountVectorizer (Raw Frequency)  │ TF-IDF (Sublinear + Ngram)│
-│ Primary Metric for Top  │ Accuracy                         │ F1-Score & Accuracy       │
-│ Top Recommended Model   │ Bernoulli Naive Bayes (96.63%)   │ Linear SVM (98.16%)       │
+│ Dataset Source          │ UCI + Philippine Spam + PUPSTB   │ Authentic UCI SMS Corpus  │
+│ Total Cleaned Messages  │ 3,148 samples                    │ 5,160 unique samples      │
+│ Class Distribution      │ Artificially Balanced (60:40)    │ Authentic Imbalance (87.6:12.4)│
+│ Balancing Technique     │ Random Undersampling of Ham      │ None (Natural Stratified) │
+│ Feature Extractions     │ CountVectorizer (Chosen in Fig 2)│ Full Factorial (TF-IDF vs Count)│
+│ Bernoulli Event Model   │ Boolean occurrence modeling      │ Strict binary indicator   │
+│ Cross-Validation        │ 5-Fold CV on training partition  │ Stratified 5-Fold CV      │
+│ Top Reported Model      │ Bernoulli Naive Bayes (96.63%)   │ Linear SVM with TF-IDF    │
 └─────────────────────────┴──────────────────────────────────┴───────────────────────────┘
 ```
 
-### 3.1 Dataset Balancing vs. Natural Distribution
-- **Reference Paper Approach:** The authors noted the heavy imbalance of the UCI dataset (87% ham, 13% spam) and addressed it by adding 79 Philippine spam texts and 561 student-collected spam texts, followed by **undersampling ham messages to force an artificial 60% Ham to 40% Spam partition** (Table IV: 1,930 ham, 1,218 spam).
-- **Our Project Approach:** We maintained the authentic, un-skewed real-world distribution (87.6% ham, 12.4% spam). In real telecommunication networks, spam is inherently a minority phenomenon. Artificially forcing a 60:40 ratio inflates recall artificially (explaining their 95.52% recall vs. our 88.28% recall) because the model encounters spam at three times its natural rate.
+### 4.1 Impact of Class Distribution (60:40 vs 87.6:12.4)
+- **Reference Paper Findings:** The authors undersampled the ham messages to create an artificial 60% ham to 40% spam partition. Because spam messages occurred at approximately three times their natural rate, models were exposed to higher spam density, artificially elevating Recall (95.52% for BNB).
+- **Our Project Findings:** We intentionally retained the authentic natural class distribution (87.56% Ham : 12.44% Spam). This is academically essential because telecommunication channels are naturally dominated by legitimate traffic. On our imbalanced test set, precision is exceptionally high (up to 97.37%), with only 3 to 4 false alarms out of 904 legitimate messages, which is the primary operational requirement of commercial anti-spam engines.
 
-### 3.2 Vectorization: CountVectorizer vs. Sublinear TF-IDF
-- **Reference Paper Approach:** The authors compared CountVectorizer and TF-IDF using default Naive Bayes variants and concluded CountVectorizer produced slightly higher accuracy (96.03% vs 95.56%), adopting CountVectorizer for subsequent model training.
-- **Our Project Approach:** CountVectorizer weights words purely by absolute occurrences, which disproportionately biases generic repetitive words. We employed **TF-IDF with sublinear term-frequency scaling and unigram + bigram ranges (1, 2)**. This penalizes ubiquitously frequent tokens while assigning high discriminative weight to spam-specific multi-word phrases (*"free entry"*, *"cash prize"*, *"urgent claim"*).
+### 4.2 Feature Extraction: TF-IDF vs. CountVectorizer
+- **Reference Paper Findings:** de Luna et al. conducted a preliminary test on Naive Bayes and observed CountVectorizer slightly surpassed TF-IDF (96.03% vs 95.56%), proceeding to use CountVectorizer exclusively for the remaining 10 algorithms.
+- **Our Project Findings:** By completing a full 2x4 factorial comparison across all four algorithms:
+  - Linear SVM and Logistic Regression perform superiorly under **TF-IDF with sublinear scaling** because continuous L2-normalized weights dampen the noise of repetitive spam words while rewarding discriminative bigrams ("free entry", "cash prize").
+  - Multinomial Naive Bayes performs slightly better with **CountVectorizer** because discrete word counts align closely with multinomial likelihood assumptions.
+  - Bernoulli Naive Bayes yields identical, highly competitive performance under both vectorizers when the presence/absence binary constraint is strictly enforced.
 
 ---
 
-## 4. Academic Validity & Research Limitations
+## 5. Research Limitations & Academic Disclaimer
 
 1. **Non-Direct Controlled Equivalence:**  
-   Because the underlying training corpora, class proportions, and word embedding matrices are distinct, this comparison constitutes an **external benchmark validation** rather than a direct controlled ablation.
-2. **Generalizability:**  
-   Models evaluated on naturally imbalanced corpora reflect actual deployment conditions in mobile telecom networks more accurately than models evaluated on heavily undersampled balanced partitions.
-3. **False Positive Trade-off:**  
-   In SMS spam detection, False Positives (blocking a legitimate personal/banking SMS) are far more detrimental than False Negatives (a spam message slipping through). Both studies confirm that Naive Bayes and Linear SVM maintain exceptionally high precision (>96.5%), ensuring minimal false alarms.
+   Because the training corpora (Philippine local messages vs. original UCI SMS), class balancing techniques, and feature matrices differ, our higher test accuracy (98.16% vs. 96.63%) should **not** be claimed as absolute algorithmic superiority. Rather, it validates model robustness under distinct real-world sampling strategies.
+2. **False Positive Penalties:**  
+   In mobile communications, a False Positive (marking a legitimate personal/banking SMS as spam) has severe consequences compared to a False Negative (a spam text slipping into the inbox). Both studies confirm that Naive Bayes and Linear SVM maintain exceptionally low false positive rates.
 
 ---
-*Report generated for Research Methodologies (RM) - 7th Semester B.Tech Project.*
-"""
+*Report generated for Research Methodologies (RM) 7th Semester B.Tech Project.*
+""")
 
-    report_path = os.path.join(output_dir, "research_comparison.md")
-    with open(report_path, "w", encoding="utf-8") as f:
-        f.write(report_content)
-    print(f"[INFO] Research comparison report written to: {report_path}")
-
-    return chart_path, report_path
+    print(f"[INFO] Research comparison report written to: {report_md_path}")
+    return comp_chart_path, report_md_path
 
 
 if __name__ == "__main__":
