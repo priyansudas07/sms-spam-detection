@@ -334,7 +334,5 @@ This project is open-source and distributed under the terms of the **[MIT Licens
 
 ## Author
 
-**Priyansu Das**  
-*B.Tech — Computer Science and Engineering*  
-**Siksha 'O' Anusandhan University, ITER**  
+**Priyansu Das**    
 GitHub: [@priyansudas07](https://github.com/priyansudas07)
