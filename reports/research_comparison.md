@@ -34,14 +34,14 @@ The authors tested 11 classifiers and performed GridSearchCV hyperparameter opti
 
 | Exp # | Feature Extraction | Algorithm | Accuracy (%) | Precision (%) | Recall (%) | F1-Score (%) | FP (False Alarms) | FN (Missed Spam) |
 |:---:|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **E1** | **TF-IDF** | Multinomial NB | 97.67% | 94.07% | 86.72% | 90.24% | 7 | 17 |
-| **E2** | **TF-IDF** | Bernoulli NB *(Binary)* | 98.06% | 97.37% | 86.72% | 91.74% | 3 | 17 |
-| **E3** | **TF-IDF** | Logistic Regression | 97.97% | 96.52% | 86.72% | 91.36% | 4 | 17 |
-| **E4** | **TF-IDF** | Linear SVM | 98.16% | 96.58% | 88.28% | 92.24% | 4 | 15 |
-| **E5** | **CountVectorizer** | Multinomial NB | 97.77% | 92.68% | 89.06% | 90.84% | 9 | 14 |
-| **E6** | **CountVectorizer** | Bernoulli NB *(Binary)* | 98.06% | 97.37% | 86.72% | 91.74% | 3 | 17 |
-| **E7** | **CountVectorizer** | Logistic Regression | 97.87% | 97.32% | 85.16% | 90.83% | 3 | 19 |
-| **E8** | **CountVectorizer** | Linear SVM | 98.16% | 97.39% | 87.50% | 92.18% | 3 | 16 |
+| **E1** | **TF-IDF** | Multinomial NB | 98.06% | 95.76% | 88.28% | 91.87% | 5 | 15 |
+| **E2** | **TF-IDF** | Bernoulli NB *(Binary)* | 98.55% | 99.13% | 89.06% | 93.83% | 1 | 14 |
+| **E3** | **TF-IDF** | Logistic Regression | 98.55% | 99.13% | 89.06% | 93.83% | 1 | 14 |
+| **E4** | **TF-IDF** | Linear SVM | 98.26% | 95.08% | 90.62% | 92.80% | 6 | 12 |
+| **E5** | **CountVectorizer** | Multinomial NB | 98.35% | 95.12% | 91.41% | 93.23% | 6 | 11 |
+| **E6** | **CountVectorizer** | Bernoulli NB *(Binary)* | 98.55% | 99.13% | 89.06% | 93.83% | 1 | 14 |
+| **E7** | **CountVectorizer** | Logistic Regression | 98.84% | 100.00% | 90.62% | 95.08% | 0 | 12 |
+| **E8** | **CountVectorizer** | Linear SVM | 98.74% | 98.32% | 91.41% | 94.74% | 2 | 11 |
 
 ---
 

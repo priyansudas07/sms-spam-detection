@@ -1,13 +1,20 @@
 """
 Text Preprocessing Module for SMS Spam Detection.
 
-This module implements natural language processing (NLP) text normalization:
-1. Lowercasing: Ensures uniform casing so 'Free', 'FREE', and 'free' are treated as identical tokens.
-2. Special Character & Punctuation Removal: Strips symbols (!, $, %, @, etc.) that introduce noise.
-3. Tokenization: Splits text messages into individual word tokens.
-4. Stopword Removal: Filters out high-frequency grammatical words ('the', 'is', 'at') with low semantic value.
-5. Stemming: Reduces words to their morphological root/base form using PorterStemmer (e.g., 'running' -> 'run').
-6. Whitespace Normalization: Eliminates redundant spaces, tabs, and line breaks.
+This module implements principled NLP text normalization for SMS security analysis:
+1. Lowercasing: Ensures uniform casing across all vocabulary.
+2. Threat Indicator Token Normalization:
+   - URLs / Web links -> 'url_token' (preserves critical phishing/smishing hook signals).
+   - Email addresses -> 'email_token' (preserves contact spoofing lures).
+   - Currency symbols ($, £, €, ₹) -> 'currency_token' (preserves monetary lure triggers).
+3. Punctuation & Special Character Removal: Retains alphanumeric tokens and whitespace.
+4. Whitespace Tokenization: Splits normalized messages into individual tokens.
+5. Selective Stopword Removal with Negation Preservation:
+   - Filters out non-informative grammatical noise ('the', 'at', 'is').
+   - Explicitly PRESERVES meaningful negation operators ('not', 'no', 'never', 'neither',
+     'without', 'against', 'cannot') to preserve sentiment and directive context.
+6. Morphological Stemming: Reduces words to root forms using PorterStemmer ('running' -> 'run').
+7. Whitespace Normalization: Eliminates redundant spacing and line breaks.
 """
 
 import re
@@ -16,74 +23,83 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
-# Ensure NLTK resources are available
-# Ensure stopword resources are available with multi-layer offline fallback
+
+# Critical negation terms preserved in anti-spam and sentiment analysis
+NEGATION_WORDS = {
+    "no", "not", "nor", "neither", "never", "without", "against",
+    "cannot", "cant", "wont", "dont", "isnt", "arent", "wasnt", "werent"
+}
+
+# Multi-layer stopword initialization with offline fallback
 try:
-    STOPWORDS = set(stopwords.words('english'))
+    _raw_stopwords = set(stopwords.words('english'))
 except Exception:
     try:
         nltk.download('stopwords', quiet=True)
-        STOPWORDS = set(stopwords.words('english'))
+        _raw_stopwords = set(stopwords.words('english'))
     except Exception:
-        # Fallback to Scikit-learn's built-in frozen stopword dictionary if NLTK is offline
         from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-        STOPWORDS = set(ENGLISH_STOP_WORDS)
+        _raw_stopwords = set(ENGLISH_STOP_WORDS)
+
+# Stopwords with negations preserved
+STOPWORDS = _raw_stopwords - NEGATION_WORDS
 
 STEMMER = PorterStemmer()
 
 
-def preprocess_text(text: str, preserve_urls: bool = False) -> str:
+def preprocess_text(text: str) -> str:
     """
-    Applies sequential NLP preprocessing steps on a raw text string.
+    Applies consistent NLP preprocessing rules across all experimental pipelines.
 
-    Steps:
-    1. Check for null or non-string input.
-    2. Convert to lowercase.
-    3. Normalize or strip URLs and email addresses.
-    4. Remove punctuation and non-alphanumeric characters (keeping spaces).
-    5. Tokenize into individual words by whitespace.
-    6. Remove English stopwords.
-    7. Apply Porter Stemmer to reduce words to root form.
-    8. Rejoin into a single normalized space-separated string.
+    Transformation Pipeline:
+    1. Type validation and lowercase conversion.
+    2. URL normalization: 'https?://...' or 'www....' -> 'url_token'.
+    3. Email normalization: 'user@domain.com' -> 'email_token'.
+    4. Currency normalization: '£', '$', '€', '₹' -> 'currency_token'.
+    5. Punctuation removal: strips non-alphanumeric noise while retaining letters, numbers, and spaces.
+    6. Tokenization: splits on whitespace.
+    7. Stopword filtering with negation preservation.
+    8. Porter Stemming.
+    9. Whitespace rejoining.
     """
-    if not isinstance(text, str):
+    if not isinstance(text, str) or not text.strip():
         return ""
 
     # Step 1: Lowercase conversion
     text = text.lower()
 
-    # Step 2: Remove or normalize URLs and email addresses
-    if preserve_urls:
-        text = re.sub(r'https?://\S+|www\.\S+', ' urltoken ', text)
-        text = re.sub(r'\S+@\S+', ' emailtoken ', text)
-    else:
-        text = re.sub(r'https?://\S+|www\.\S+', '', text)
-        text = re.sub(r'\S+@\S+', '', text)
+    # Step 2: URL token replacement (Preserves smishing indicators)
+    text = re.sub(r'https?://\S+|www\.\S+', ' urltoken ', text)
 
-    # Step 3: Remove punctuation and non-alphanumeric characters
-    # Keep alphanumeric characters and spaces
-    text = re.sub(r'[^a-z0-9\s]', '', text)
+    # Step 3: Email token replacement
+    text = re.sub(r'\S+@\S+', ' emailtoken ', text)
 
-    # Step 4: Tokenization by whitespace
+    # Step 4: Currency symbol replacement (Preserves financial prize lures)
+    text = re.sub(r'[$£€₹]', ' currencytoken ', text)
+
+    # Step 5: Remove non-alphanumeric punctuation (keep letters, numbers, spaces)
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+
+    # Step 6: Whitespace tokenization
     tokens = text.split()
 
-    # Step 5 & 6: Stopword removal and Stemming
+    # Step 7 & 8: Stopword filtering (with negations preserved) and Porter Stemming
     cleaned_tokens = [
         STEMMER.stem(word)
         for word in tokens
         if word not in STOPWORDS and len(word) > 1
     ]
 
-    # Step 7: Whitespace normalization and rejoining
+    # Step 9: Normalized single-space rejoining
     return " ".join(cleaned_tokens)
 
 
 def compute_transformation_stats(df, raw_col='message', processed_col='processed_message'):
     """
     Calculates corpus-level statistics before and after text transformation:
-    - Character count
-    - Word count
-    - Vocabulary size (unique words)
+    - Character volume
+    - Word token count
+    - Unique vocabulary size
     """
     chars_before = df[raw_col].apply(len).sum()
     words_before = df[raw_col].apply(lambda x: len(str(x).split())).sum()
@@ -94,14 +110,26 @@ def compute_transformation_stats(df, raw_col='message', processed_col='processed
     vocab_after = len(set(" ".join(df[processed_col]).split()))
 
     stats = {
-        "Characters": {"Before": int(chars_before), "After": int(chars_after), "Reduction %": round((1 - chars_after / chars_before) * 100, 2)},
-        "Words": {"Before": int(words_before), "After": int(words_after), "Reduction %": round((1 - words_after / words_before) * 100, 2)},
-        "Unique Vocab": {"Before": int(vocab_before), "After": int(vocab_after), "Reduction %": round((1 - vocab_after / vocab_before) * 100, 2)},
+        "Characters": {
+            "Before": int(chars_before),
+            "After": int(chars_after),
+            "Reduction %": round((1 - chars_after / chars_before) * 100, 2)
+        },
+        "Words": {
+            "Before": int(words_before),
+            "After": int(words_after),
+            "Reduction %": round((1 - words_after / words_before) * 100, 2)
+        },
+        "Unique Vocab": {
+            "Before": int(vocab_before),
+            "After": int(vocab_after),
+            "Reduction %": round((1 - vocab_after / vocab_before) * 100, 2)
+        },
     }
     return stats
 
 
 if __name__ == "__main__":
-    sample = "WINNER!! As a valued customer, you have been selected to win £900 cash prize! Text CLAIM to 87121."
+    sample = "USPS Notice: Your package could not be delivered today! Pay £1.99 fee at http://usps-track.com immediately."
     print("Original text :", sample)
     print("Processed text:", preprocess_text(sample))

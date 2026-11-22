@@ -39,12 +39,12 @@ def generate_paper_comparison(results_path="reports/results/results_summary.csv"
         from evaluation import run_comprehensive_evaluation
         from data_loader import load_raw_data, clean_data
         from feature_extraction import split_data
-        from model_training import train_and_tune_all_8
+        from model_training import train_tune_and_select
         raw_df = load_raw_data()
         clean_df, _ = clean_data(raw_df)
         X_train, X_test, y_train, y_test = split_data(clean_df)
-        trained_models, _ = train_and_tune_all_8(X_train, y_train)
-        df_our, _ = run_comprehensive_evaluation(trained_models, X_test, y_test)
+        trained_models, _, _ = train_tune_and_select(X_train, y_train)
+        df_our, _, _ = run_comprehensive_evaluation(trained_models, X_test, y_test)
 
     # Reference Paper Published Results (Table VII - Robert G. de Luna et al.)
     ieee_top4 = [

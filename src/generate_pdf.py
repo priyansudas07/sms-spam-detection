@@ -6,6 +6,7 @@ Output: reports/sms_spam_detection_report.pdf
 
 import os
 import json
+import pandas as pd
 from fpdf import FPDF
 
 
@@ -26,8 +27,30 @@ class AcademicPDF(FPDF):
         self.cell(0, 10, f"Page {self.page_no()}/{{nb}}  |  Priyansu Das - Siksha 'O' Anusandhan University (ITER)", 0, 0, 'C')
 
 
-def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf="reports/sms_spam_detection_report.pdf"):
+def generate_pdf(output_pdf="reports/sms_spam_detection_report.pdf"):
     os.makedirs(os.path.dirname(output_pdf), exist_ok=True)
+    
+    # Load dynamic results if available
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    results_csv = os.path.join(project_root, "reports", "results", "results_summary.csv")
+    meta_json = os.path.join(project_root, "models", "selected_model_metadata.json")
+    
+    champion_name = "TF-IDF + Bernoulli Naive Bayes"
+    if os.path.exists(meta_json):
+        try:
+            with open(meta_json, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+                champion_name = meta.get("selected_model_name", champion_name)
+        except Exception:
+            pass
+            
+    df_results = None
+    if os.path.exists(results_csv):
+        try:
+            df_results = pd.read_csv(results_csv)
+        except Exception:
+            pass
+
     pdf = AcademicPDF()
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -56,7 +79,7 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
 
     pdf.set_draw_color(217, 223, 225)
     pdf.set_fill_color(245, 244, 239) # #F5F4EF
-    pdf.rect(10, pdf.get_y(), 190, 28, 'FD')
+    pdf.rect(10, pdf.get_y(), 190, 30, 'FD')
 
     pdf.set_xy(12, pdf.get_y() + 2)
     pdf.set_font('Helvetica', 'B', 9)
@@ -67,9 +90,10 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     summary_text = (
         "This research report documents a full 2x4 factorial experimental investigation comparing TF-IDF "
         "and CountVectorizer across four classifiers: Multinomial NB, Bernoulli NB, Logistic Regression, "
-        "and Linear SVM. Evaluated on an untouched test split of 1,032 messages from the official UCI SMS "
-        "dataset, Linear SVM with TF-IDF achieved the highest overall performance (98.16% Accuracy, 92.24% F1-Score). "
-        "External benchmark validation against IEEE TENCON 2023 is analyzed with full academic rigor."
+        "and Linear SVM. Model selection was conducted strictly via Stratified 5-Fold Cross-Validation on training "
+        "data (Peak Mean CV F1 = 93.69%), selecting TF-IDF + Bernoulli Naive Bayes as champion. Evaluated on the untouched "
+        "test split of 1,032 messages, the champion achieved 98.55% Accuracy, 99.13% Precision, 89.06% Recall, 93.83% F1, "
+        "and only 1 False Positive out of 904 legitimate messages. External validation against IEEE TENCON 2023 is analyzed."
     )
     pdf.multi_cell(186, 4.5, summary_text)
     pdf.ln(8)
@@ -112,14 +136,14 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
 
     # --- Section 2: NLP Preprocessing & Feature Extraction ---
     pdf.set_font('Helvetica', 'B', 12)
-    pdf.cell(0, 8, "2. NLP Preprocessing & 2x4 Factorial Feature Representation", 0, 1, 'L')
+    pdf.cell(0, 8, "2. NLP Preprocessing & Methodological Design", 0, 1, 'L')
     pdf.set_font('Helvetica', '', 8.5)
     pdf.multi_cell(0, 5, (
-        "Each SMS underwent text normalization: lowercasing, regex noise removal, whitespace tokenization, "
-        "English stopword filtering, and Porter stemming. This reduced character volume by 39.74% and vocabulary "
-        "by 41.29% (13,627 to 8,001 unique root words).\n\n"
-        "Two feature extraction methods were implemented under a 2x4 factorial design: Sublinear TF-IDF (n-grams 1-2) "
-        "and CountVectorizer. Bernoulli Naive Bayes was strictly enforced with binary presence/absence indicator matrices."
+        "Each SMS underwent text normalization: lowercasing, semantic token substitution for URLs ('urltoken'), "
+        "emails ('emailtoken'), and currencies ('currencytoken'), preservation of crucial negation words ('not', 'no', 'never', "
+        "'cannot', 'wont', etc.), whitespace tokenization, and Porter stemming. This preserved vital spam signal.\n\n"
+        "Two feature extraction methods were evaluated under a 2x4 factorial design: Sublinear TF-IDF and CountVectorizer. "
+        "Bernoulli Naive Bayes was strictly configured for binary presence/absence indicator matrices."
     ))
     pdf.ln(3)
 
@@ -127,47 +151,75 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     pdf.set_font('Helvetica', 'B', 12)
     pdf.cell(0, 8, "3. Final Experimental Results on Untouched Test Fold (1,032 Samples)", 0, 1, 'L')
     pdf.set_font('Helvetica', '', 8.5)
-    pdf.multi_cell(0, 5, "All models were tuned via 5-fold cross-validation on training data and evaluated on 1,032 test samples:")
+    pdf.multi_cell(0, 5, "Models tuned via 5-fold CV strictly on training data (Mean CV F1) and evaluated once on test data:")
     pdf.ln(2)
 
-    # 8-Model Results Table
+    # 8-Model Results Table Header
     pdf.set_font('Helvetica', 'B', 7.5)
     pdf.set_fill_color(234, 236, 233)
-    pdf.cell(60, 6, "Experiment Pipeline", 1, 0, 'L', fill=True)
+    pdf.cell(62, 6, "Experiment Pipeline", 1, 0, 'L', fill=True)
     pdf.cell(24, 6, "Accuracy", 1, 0, 'C', fill=True)
     pdf.cell(24, 6, "Precision", 1, 0, 'C', fill=True)
     pdf.cell(24, 6, "Recall", 1, 0, 'C', fill=True)
     pdf.cell(24, 6, "F1-Score", 1, 0, 'C', fill=True)
-    pdf.cell(34, 6, "False Positives (FP)", 1, 1, 'C', fill=True)
+    pdf.cell(32, 6, "False Positives (FP)", 1, 1, 'C', fill=True)
 
     pdf.set_font('Helvetica', '', 7.5)
-    results_rows = [
-        ("TF-IDF + Multinomial NB", "97.67%", "94.07%", "86.72%", "90.24%", "7 / 904"),
-        ("TF-IDF + Bernoulli NB (Binary)", "98.06%", "97.37%", "86.72%", "91.74%", "3 / 904 (0.3%)"),
-        ("TF-IDF + Logistic Regression", "97.97%", "96.52%", "86.72%", "91.36%", "4 / 904"),
-        ("TF-IDF + Linear SVM (Top Model)", "98.16%", "96.58%", "88.28%", "92.24%", "4 / 904"),
-        ("CountVectorizer + Multinomial NB", "97.77%", "92.68%", "89.06%", "90.84%", "9 / 904"),
-        ("CountVectorizer + Bernoulli NB", "98.06%", "97.37%", "86.72%", "91.74%", "3 / 904 (0.3%)"),
-        ("CountVectorizer + Logistic Regression", "97.87%", "97.32%", "85.16%", "90.83%", "3 / 904 (0.3%)"),
-        ("CountVectorizer + Linear SVM", "98.16%", "97.39%", "87.50%", "92.18%", "3 / 904 (0.3%)"),
-    ]
-    for pipe, acc, prec, rec, f1, fp in results_rows:
-        is_top = "Top Model" in pipe
-        if is_top:
-            pdf.set_fill_color(230, 245, 235)
-            pdf.cell(60, 5, pipe, 1, 0, 'L', fill=True)
-            pdf.cell(24, 5, acc, 1, 0, 'C', fill=True)
-            pdf.cell(24, 5, prec, 1, 0, 'C', fill=True)
-            pdf.cell(24, 5, rec, 1, 0, 'C', fill=True)
-            pdf.cell(24, 5, f1, 1, 0, 'C', fill=True)
-            pdf.cell(34, 5, fp, 1, 1, 'C', fill=True)
-        else:
-            pdf.cell(60, 5, pipe, 1, 0, 'L')
-            pdf.cell(24, 5, acc, 1, 0, 'C')
-            pdf.cell(24, 5, prec, 1, 0, 'C')
-            pdf.cell(24, 5, rec, 1, 0, 'C')
-            pdf.cell(24, 5, f1, 1, 0, 'C')
-            pdf.cell(34, 5, fp, 1, 1, 'C')
+    
+    if df_results is not None:
+        for _, row in df_results.iterrows():
+            exp_name = row["Experiment"]
+            is_champ = (exp_name == champion_name)
+            name_display = f"{exp_name} [CHAMPION]" if is_champ else exp_name
+            acc_str = f"{row['Accuracy']*100:.2f}%"
+            prec_str = f"{row['Precision']*100:.2f}%"
+            rec_str = f"{row['Recall']*100:.2f}%"
+            f1_str = f"{row['F1-Score']*100:.2f}%"
+            fp_str = f"{int(row['FP (False Alarm)'])} / 904"
+            
+            if is_champ:
+                pdf.set_fill_color(230, 245, 235)
+                pdf.cell(62, 5, name_display, 1, 0, 'L', fill=True)
+                pdf.cell(24, 5, acc_str, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, prec_str, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, rec_str, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, f1_str, 1, 0, 'C', fill=True)
+                pdf.cell(32, 5, fp_str, 1, 1, 'C', fill=True)
+            else:
+                pdf.cell(62, 5, name_display, 1, 0, 'L')
+                pdf.cell(24, 5, acc_str, 1, 0, 'C')
+                pdf.cell(24, 5, prec_str, 1, 0, 'C')
+                pdf.cell(24, 5, rec_str, 1, 0, 'C')
+                pdf.cell(24, 5, f1_str, 1, 0, 'C')
+                pdf.cell(32, 5, fp_str, 1, 1, 'C')
+    else:
+        results_rows = [
+            ("TF-IDF + Multinomial NB", "98.06%", "95.76%", "88.28%", "91.87%", "5 / 904"),
+            ("TF-IDF + Bernoulli NB [CHAMPION]", "98.55%", "99.13%", "89.06%", "93.83%", "1 / 904"),
+            ("TF-IDF + Logistic Regression", "98.55%", "99.13%", "89.06%", "93.83%", "1 / 904"),
+            ("TF-IDF + Linear SVM", "98.26%", "95.08%", "90.62%", "92.80%", "6 / 904"),
+            ("CountVectorizer + Multinomial NB", "98.35%", "95.12%", "91.41%", "93.23%", "6 / 904"),
+            ("CountVectorizer + Bernoulli NB", "98.55%", "99.13%", "89.06%", "93.83%", "1 / 904"),
+            ("CountVectorizer + Logistic Regression", "98.84%", "100.00%", "90.62%", "95.08%", "0 / 904"),
+            ("CountVectorizer + Linear SVM", "98.74%", "98.32%", "91.41%", "94.74%", "2 / 904"),
+        ]
+        for pipe, acc, prec, rec, f1, fp in results_rows:
+            is_top = "[CHAMPION]" in pipe
+            if is_top:
+                pdf.set_fill_color(230, 245, 235)
+                pdf.cell(62, 5, pipe, 1, 0, 'L', fill=True)
+                pdf.cell(24, 5, acc, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, prec, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, rec, 1, 0, 'C', fill=True)
+                pdf.cell(24, 5, f1, 1, 0, 'C', fill=True)
+                pdf.cell(32, 5, fp, 1, 1, 'C', fill=True)
+            else:
+                pdf.cell(62, 5, pipe, 1, 0, 'L')
+                pdf.cell(24, 5, acc, 1, 0, 'C')
+                pdf.cell(24, 5, prec, 1, 0, 'C')
+                pdf.cell(24, 5, rec, 1, 0, 'C')
+                pdf.cell(24, 5, f1, 1, 0, 'C')
+                pdf.cell(32, 5, fp, 1, 1, 'C')
 
     pdf.ln(6)
 
@@ -175,8 +227,8 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     pdf.set_font('Helvetica', 'B', 12)
     pdf.cell(0, 8, "4. Research Visualizations & Performance Comparison", 0, 1, 'L')
 
-    f1_chart = "reports/figures/f1_comparison.png"
-    feat_chart = "reports/figures/feature_extraction_comparison.png"
+    f1_chart = os.path.join(project_root, "reports", "figures", "f1_comparison.png")
+    feat_chart = os.path.join(project_root, "reports", "figures", "feature_extraction_comparison.png")
 
     if os.path.exists(f1_chart) and os.path.exists(feat_chart):
         y_pos = pdf.get_y()
@@ -197,7 +249,7 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     pdf.multi_cell(0, 5, (
         "Reference Paper: 'A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)', "
         "IEEE TENCON 2023, Chiang Mai, Thailand (Robert G. de Luna et al.).\n"
-        "Important Correction: Table VII of the IEEE paper reports Random Forest at 96.0297%, NOT Multinomial Naive Bayes."
+        "Important Clarification: Table VII of the IEEE paper reports Random Forest at 96.0297%, NOT Multinomial Naive Bayes."
     ))
     pdf.ln(2)
 
@@ -210,10 +262,10 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
 
     pdf.set_font('Helvetica', '', 7.5)
     comp_data = [
-        ("Bernoulli Naive Bayes", "Acc: 96.6333% | Prec: 98.44% | Rec: 95.52% | F1: 92.78%", "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%"),
+        ("Bernoulli Naive Bayes", "Acc: 96.6333% | Prec: 98.44% | Rec: 95.52% | F1: 92.78%", "Acc: 98.55% | Prec: 99.13% | Rec: 89.06% | F1: 93.83% [Champion]"),
         ("Random Forest Classifier", "Acc: 96.0297% | Prec: 98.52% | Rec: 94.87% | F1: 91.14%", "Tree ensemble baseline in reference paper"),
-        ("Logistic Regression", "Acc: 95.8709% | Prec: 98.77% | Rec: 93.74% | F1: 89.26%", "Acc: 97.97% (TF-IDF) / 97.87% (CountVec)"),
-        ("Linear Support Vector Machine", "Acc: 94.5684% (Default CV, unoptimized in paper)", "Acc: 98.16% | Prec: 96.58% | Rec: 88.28% | F1: 92.24% (Top)"),
+        ("Logistic Regression", "Acc: 95.8709% | Prec: 98.77% | Rec: 93.74% | F1: 89.26%", "Acc: 98.55% (TF-IDF) / 98.84% (CountVec)"),
+        ("Linear Support Vector Machine", "Acc: 94.5684% (Default CV, unoptimized in paper)", "Acc: 98.26% (TF-IDF) / 98.74% (CountVec)"),
     ]
     for algo, ieee, our in comp_data:
         pdf.cell(48, 6, algo, 1, 0, 'L')
@@ -223,7 +275,7 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     pdf.ln(4)
 
     # Embed IEEE Comparison Chart
-    paper_chart = "reports/figures/paper_vs_our_comparison.png"
+    paper_chart = os.path.join(project_root, "reports", "figures", "paper_vs_our_comparison.png")
     if os.path.exists(paper_chart):
         pdf.image(paper_chart, x=25, y=pdf.get_y(), w=160)
         pdf.set_y(pdf.get_y() + 75)
@@ -238,16 +290,16 @@ def generate_pdf(notebook_path="notebooks/sms_spam_detection.ipynb", output_pdf=
     pdf.multi_cell(0, 4.5, (
         "1. Class Imbalance: The IEEE study artificially undersampled ham messages to force an approximate 60:40 partition. "
         "Our study preserved the natural real-world 87.56% Ham to 12.44% Spam distribution. Higher spam density artificially "
-        "inflates recall (95.5% vs 88.3%).\n"
-        "2. Feature Engineering: The IEEE study selected CountVectorizer. Our factorial study reveals that Sublinear TF-IDF "
-        "achieves superior performance for Linear SVM and Logistic Regression.\n"
-        "3. Operational Trade-offs: In telecom networks, False Positives (blocking legitimate SMS) are severely penalized. "
-        "Both studies confirm that Naive Bayes and Linear SVM maintain exceptionally low false-alarm rates (<= 0.4%)."
+        "inflates apparent recall (95.5% vs 89.1%).\n"
+        "2. Feature Engineering: The IEEE study relied on basic CountVectorizer. Our modern preprocessing preserved negation markers "
+        "and replaced URLs/currencies with atomic semantic tokens ('urltoken', 'currencytoken'), substantially reducing false alarms.\n"
+        "3. Operational Trade-offs: In telecommunications, False Positives (blocking legitimate SMS) are severely penalized. "
+        "Our validation-selected model achieved a false alarm rate of only 0.11% (1 false positive out of 904 legitimate messages)."
     ))
     pdf.ln(4)
 
     # --- Section 6: Confusion Matrix Grid ---
-    cm_all = "reports/figures/confusion_matrices_all8.png"
+    cm_all = os.path.join(project_root, "reports", "figures", "confusion_matrices_all8.png")
     if os.path.exists(cm_all):
         pdf.add_page()
         pdf.set_font('Helvetica', 'B', 12)

@@ -1,0 +1,45 @@
+{
+  "project_title": "Comparative Analysis of ML Algorithms for SMS Spam Detection",
+  "dataset_source": "UCI Machine Learning Repository (SMS Spam Collection ID: 228)",
+  "random_state": 42,
+  "test_partition_size": 0.2,
+  "cv_method": "StratifiedKFold",
+  "cv_folds": 5,
+  "cv_scoring_metric": "f1 (positive class = spam)",
+  "model_selection_protocol": "Peak Mean 5-Fold Cross-Validation F1-Score on Training Partition",
+  "feature_extraction_methods": [
+    "TF-IDF (Sublinear)",
+    "CountVectorizer (Bag-of-Words)"
+  ],
+  "classifiers_evaluated": [
+    "Multinomial Naive Bayes",
+    "Bernoulli Naive Bayes (Binarized Presence)",
+    "Logistic Regression",
+    "Linear Support Vector Machine (Platt Calibrated)"
+  ],
+  "preprocessing_rules": {
+    "lowercasing": true,
+    "url_tokenization": "urltoken",
+    "email_tokenization": "emailtoken",
+    "currency_tokenization": "currencytoken",
+    "punctuation_removal": true,
+    "negation_words_preserved": [
+      "no",
+      "not",
+      "nor",
+      "neither",
+      "never",
+      "without",
+      "against",
+      "cannot",
+      "cant",
+      "wont",
+      "dont",
+      "isnt",
+      "arent",
+      "wasnt",
+      "werent"
+    ],
+    "stemmer": "PorterStemmer"
+  }
+}

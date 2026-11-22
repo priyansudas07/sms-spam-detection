@@ -16,7 +16,9 @@ data/*
 # Serialized models and large artifact files
 *.pkl
 *.joblib
-models/
+models/*
+!models/*.json
+!models/README.md
 
 # OS-generated files
 .DS_Store

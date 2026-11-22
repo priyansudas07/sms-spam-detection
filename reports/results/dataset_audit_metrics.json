@@ -1,0 +1,118 @@
+{
+  "raw_records": 5574,
+  "single_tab_lines": 5574,
+  "null_labels": 0,
+  "null_messages": 0,
+  "invalid_labels": [],
+  "empty_messages": 0,
+  "exact_duplicates_raw": 403,
+  "whitespace_stripped_duplicates": 414,
+  "conflicting_labels_count": 0,
+  "raw_distribution": {
+    "total": 5574,
+    "ham": 4827,
+    "spam": 747,
+    "ham_pct": 86.6,
+    "spam_pct": 13.4,
+    "imbalance_ratio": 6.46
+  },
+  "cleaned_distribution": {
+    "total": 5160,
+    "ham": 4518,
+    "spam": 642,
+    "ham_pct": 87.56,
+    "spam_pct": 12.44,
+    "imbalance_ratio": 7.04,
+    "ham_dropped": 309,
+    "spam_dropped": 105,
+    "total_dropped": 414
+  },
+  "character_length_statistics": {
+    "all": {
+      "count": 5160,
+      "mean": 79.14,
+      "std": 58.29,
+      "median": 61.0,
+      "min": 2,
+      "max": 910,
+      "q25": 36.0,
+      "q75": 118.0,
+      "q90": 155.0,
+      "q95": 160.0,
+      "q99": 267.1,
+      "iqr": 82.0
+    },
+    "ham": {
+      "count": 4518,
+      "mean": 70.86,
+      "std": 56.58,
+      "median": 53.0,
+      "min": 2,
+      "max": 910,
+      "q25": 34.0,
+      "q75": 91.0,
+      "q90": 143.0,
+      "q95": 159.0,
+      "q99": 280.15,
+      "iqr": 57.0
+    },
+    "spam": {
+      "count": 642,
+      "mean": 137.41,
+      "std": 29.98,
+      "median": 148.0,
+      "min": 13,
+      "max": 223,
+      "q25": 131.0,
+      "q75": 157.0,
+      "q90": 160.0,
+      "q95": 162.0,
+      "q99": 175.0,
+      "iqr": 26.0
+    }
+  },
+  "word_count_statistics": {
+    "all": {
+      "count": 5160,
+      "mean": 15.41,
+      "std": 11.1,
+      "median": 12.0,
+      "min": 1,
+      "max": 171,
+      "q25": 7.0,
+      "q75": 22.0,
+      "q90": 29.0,
+      "q95": 32.05,
+      "q99": 50.0,
+      "iqr": 15.0
+    },
+    "ham": {
+      "count": 4518,
+      "mean": 14.23,
+      "std": 11.16,
+      "median": 11.0,
+      "min": 1,
+      "max": 171,
+      "q25": 7.0,
+      "q75": 19.0,
+      "q90": 28.0,
+      "q95": 33.0,
+      "q99": 54.83,
+      "iqr": 12.0
+    },
+    "spam": {
+      "count": 642,
+      "mean": 23.7,
+      "std": 5.97,
+      "median": 25.0,
+      "min": 2,
+      "max": 35,
+      "q25": 21.25,
+      "q75": 28.0,
+      "q90": 30.0,
+      "q95": 31.0,
+      "q99": 33.0,
+      "iqr": 6.75
+    }
+  }
+}

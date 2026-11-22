@@ -1,0 +1,11 @@
+{
+  "selected_model_name": "TF-IDF + Bernoulli Naive Bayes",
+  "selection_metric": "Mean Stratified 5-Fold Cross-Validation F1-Score on X_train",
+  "selection_rationale": "Model selection was conducted strictly using training cross-validation performance to guarantee test-set isolation and eliminate data snooping bias. TF-IDF + Bernoulli Naive Bayes attained the peak Mean CV F1-Score (93.69%).",
+  "mean_cv_f1": 0.9369,
+  "std_cv_f1": 0.0177,
+  "optimal_hyperparameters": "{'classifier__alpha': 0.01, 'vectorizer__max_features': 4000}",
+  "model_file": "tfidf_plus_bernoulli_naive_bayes.pkl",
+  "persisted_path": "models\\best_model.pkl",
+  "selection_timestamp": "2026-11-22T20:23:48.142200"
+}

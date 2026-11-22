@@ -1,0 +1,21 @@
+Strategy,Classifier,Train_Vocab_Size,Mean_CV_F1,Std_CV_F1,Test_Accuracy,Test_Precision,Test_Recall,Test_F1,FP_False_Alarms,FN_Missed_Spam
+1. Raw / Minimal (Lowercase only),Multinomial Naive Bayes,7713,0.9357,0.0135,0.9835,0.9744,0.8906,0.9306,3,14
+1. Raw / Minimal (Lowercase only),Bernoulli Naive Bayes,7713,0.9393,0.0174,0.9884,1.0,0.9062,0.9508,0,12
+1. Raw / Minimal (Lowercase only),Logistic Regression,7713,0.9266,0.0186,0.9826,0.9825,0.875,0.9256,2,16
+1. Raw / Minimal (Lowercase only),Linear SVM,7713,0.9386,0.0232,0.9855,0.9829,0.8984,0.9388,2,13
+2. Aggressive / Legacy (Strip URLs/Negations),Multinomial Naive Bayes,6897,0.9197,0.0175,0.9777,0.9565,0.8594,0.9053,5,18
+2. Aggressive / Legacy (Strip URLs/Negations),Bernoulli Naive Bayes,6897,0.9172,0.0116,0.9806,0.9909,0.8516,0.916,1,19
+2. Aggressive / Legacy (Strip URLs/Negations),Logistic Regression,6897,0.9036,0.0195,0.9777,0.973,0.8438,0.9038,3,20
+2. Aggressive / Legacy (Strip URLs/Negations),Linear SVM,6897,0.9071,0.015,0.9797,0.9735,0.8594,0.9129,3,18
+"3. Standard Clean (Negation Preserved, No Tokens)",Multinomial Naive Bayes,6300,0.9314,0.016,0.9835,0.9664,0.8984,0.9312,4,13
+"3. Standard Clean (Negation Preserved, No Tokens)",Bernoulli Naive Bayes,6300,0.9325,0.0189,0.9855,0.9913,0.8906,0.9383,1,14
+"3. Standard Clean (Negation Preserved, No Tokens)",Logistic Regression,6300,0.9129,0.0239,0.9835,0.9912,0.875,0.9295,1,16
+"3. Standard Clean (Negation Preserved, No Tokens)",Linear SVM,6300,0.927,0.0241,0.9806,0.9576,0.8828,0.9187,5,15
+4. Modern Semantic-Preserving (Tokens + Negation + Stem),Multinomial Naive Bayes,6240,0.9325,0.0196,0.9806,0.9576,0.8828,0.9187,5,15
+4. Modern Semantic-Preserving (Tokens + Negation + Stem),Bernoulli Naive Bayes,6240,0.9369,0.0177,0.9855,0.9913,0.8906,0.9383,1,14
+4. Modern Semantic-Preserving (Tokens + Negation + Stem),Logistic Regression,6240,0.9184,0.0249,0.9845,0.9912,0.8828,0.9339,1,15
+4. Modern Semantic-Preserving (Tokens + Negation + Stem),Linear SVM,6240,0.9349,0.0225,0.9855,0.9669,0.9141,0.9398,4,11
+"5. Semantic-Preserving No-Stem (Tokens + Negation, No Stem)",Multinomial Naive Bayes,7350,0.9365,0.0148,0.9845,0.9828,0.8906,0.9344,2,14
+"5. Semantic-Preserving No-Stem (Tokens + Negation, No Stem)",Bernoulli Naive Bayes,7350,0.9325,0.0141,0.9855,0.9913,0.8906,0.9383,1,14
+"5. Semantic-Preserving No-Stem (Tokens + Negation, No Stem)",Logistic Regression,7350,0.9141,0.03,0.9845,0.9828,0.8906,0.9344,2,14
+"5. Semantic-Preserving No-Stem (Tokens + Negation, No Stem)",Linear SVM,7350,0.9356,0.0223,0.9845,0.9667,0.9062,0.9355,4,12
