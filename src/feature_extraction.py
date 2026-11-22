@@ -11,9 +11,11 @@ This module implements two distinct feature extraction techniques:
 
 Key Methodological Specifications:
 - Both vectorizers support n-gram ranges (unigrams + bigrams: (1, 2)).
-- Special Bernoulli Naive Bayes requirement: BernoulliNB strictly requires binary
-  indicator features representing word presence/absence (x_ij in {0, 1}). Both
-  vectorizers support an explicit `binary=True` flag to enforce this constraint.
+- Special Bernoulli Naive Bayes requirement: BernoulliNB models multivariate binary
+  token presence/absence (x_ij in {0, 1}). For CountVectorizer, `binary=True` produces
+  exact {0, 1} indicator matrices. For TfidfVectorizer, `binary=True` binarizes term
+  frequencies before IDF scaling, and `BernoulliNB(binarize=0.0)` applies zero-thresholding
+  to ensure strict binary event evaluation.
 - Zero Data Leakage: Splitting is performed before any vocabulary fitting. All
   vectorizers are fitted exclusively on training data (X_train).
 """
@@ -75,7 +77,9 @@ def get_vectorizer(technique="tfidf", max_features=4000, binary=False, ngram_ran
     - technique (str): 'tfidf' for TF-IDF Vectorizer or 'count' for CountVectorizer.
     - max_features (int): Maximum vocabulary size to retain based on term frequency.
     - binary (bool): If True, all non-zero counts are set to 1.
-                     Mandatory for Bernoulli Naive Bayes (presence/absence model).
+                     For CountVectorizer, produces exact {0, 1} indicator matrices.
+                     For TfidfVectorizer, binarizes term occurrences prior to IDF scaling;
+                     BernoulliNB(binarize=0.0) applies zero-thresholding to complete the mapping.
     - ngram_range (tuple): Range of n-values for token n-grams (default unigrams + bigrams: (1, 2)).
 
     Returns:

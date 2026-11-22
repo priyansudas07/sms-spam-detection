@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](http://localhost:8501)
-[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.9-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3%2B-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![Status](https://img.shields.io/badge/Status-Completed-success)](#)
 
 A machine learning research project exploring and comparing traditional classification algorithms for identifying spam and legitimate SMS messages using Natural Language Processing (NLP).
@@ -223,11 +223,13 @@ sms-spam-detection/
 │   ├── model_training.py               # 8 ML pipeline definitions and 5-fold CV grid search
 │   ├── evaluation.py                   # Multi-metric evaluation, confusion matrices, and charts
 │   ├── paper_comparison.py             # IEEE TENCON 2023 comparative analysis script
+│   ├── generate_pdf.py                 # Academic publication PDF report generator
 │   └── create_notebook.py              # Notebook generation utility
 │
 ├── reports/
 │   ├── research_report.md              # Formal 18-section academic research report
 │   ├── research_comparison.md          # Detailed IEEE paper comparison report
+│   ├── sms_spam_detection_report.pdf   # Publication-ready compiled PDF report
 │   ├── results/
 │   │   ├── results_summary.csv         # Machine-readable evaluation table
 │   │   └── results_summary.json        # Machine-readable evaluation JSON
@@ -292,7 +294,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 ## Technologies Used
 
 - **Language:** Python 3.10+
-- **Machine Learning:** Scikit-learn (Pipelines, GridSearchCV, LinearSVC, Naive Bayes, Logistic Regression)
+- **Machine Learning:** Scikit-learn (Pipelines, GridSearchCV, SVC with Linear Kernel & Platt Scaling, Naive Bayes, Logistic Regression)
 - **Natural Language Processing:** NLTK (Tokenization, English Stopwords, Porter Stemmer)
 - **Data Manipulation:** Pandas, NumPy
 - **Visualizations:** Matplotlib, Seaborn

@@ -14,14 +14,19 @@ import urllib.request
 import pandas as pd
 
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DEFAULT_DATA_FILE = os.path.join(DEFAULT_DATA_DIR, "SMSSpamCollection")
 UCI_DATASET_URL = "https://archive.ics.uci.edu/static/public/228/sms+spam+collection.zip"
 
 
-def download_uci_dataset(dest_dir="data"):
+def download_uci_dataset(dest_dir=None):
     """
     Downloads and extracts the official UCI SMS Spam Collection dataset
     if it does not already exist in the destination directory.
     """
+    if dest_dir is None:
+        dest_dir = DEFAULT_DATA_DIR
     os.makedirs(dest_dir, exist_ok=True)
     raw_file = os.path.join(dest_dir, "SMSSpamCollection")
     zip_path = os.path.join(dest_dir, "smsspamcollection.zip")
@@ -51,15 +56,23 @@ def download_uci_dataset(dest_dir="data"):
         raise FileNotFoundError(f"Expected file 'SMSSpamCollection' not found in extracted archive.")
 
 
-def load_raw_data(filepath="data/SMSSpamCollection"):
+def load_raw_data(filepath=None):
     """
     Loads the raw SMS Spam Collection dataset.
     The file is tab-separated with two columns:
     - label: 'ham' or 'spam'
     - message: SMS text content
     """
+    if filepath is None:
+        if os.path.exists(DEFAULT_DATA_FILE):
+            filepath = DEFAULT_DATA_FILE
+        elif os.path.exists("data/SMSSpamCollection"):
+            filepath = "data/SMSSpamCollection"
+        else:
+            filepath = DEFAULT_DATA_FILE
+
     if not os.path.exists(filepath):
-        filepath = download_uci_dataset(os.path.dirname(filepath) or "data")
+        filepath = download_uci_dataset(os.path.dirname(filepath) or DEFAULT_DATA_DIR)
 
     # Read tab-delimited file, handling any multi-line or encoding nuances
     df = pd.read_csv(

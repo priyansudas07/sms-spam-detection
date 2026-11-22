@@ -55,6 +55,8 @@ def build_pipeline(feature_tech: str, algorithm_name: str, max_features: int = 4
     elif algorithm_name == "Logistic Regression":
         classifier = LogisticRegression(max_iter=1000, random_state=42)
     elif algorithm_name == "Linear SVM":
+        # Note: probability=True enables internal 5-fold cross-validated Platt scaling
+        # for calibrated probability outputs, adding computational overhead during tuning.
         classifier = SVC(kernel='linear', probability=True, random_state=42)
     else:
         raise ValueError(f"Unknown algorithm: {algorithm_name}")

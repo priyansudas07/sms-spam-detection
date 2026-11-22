@@ -17,27 +17,34 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
 # Ensure NLTK resources are available
+# Ensure stopword resources are available with multi-layer offline fallback
 try:
     STOPWORDS = set(stopwords.words('english'))
-except LookupError:
-    nltk.download('stopwords')
-    STOPWORDS = set(stopwords.words('english'))
+except Exception:
+    try:
+        nltk.download('stopwords', quiet=True)
+        STOPWORDS = set(stopwords.words('english'))
+    except Exception:
+        # Fallback to Scikit-learn's built-in frozen stopword dictionary if NLTK is offline
+        from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+        STOPWORDS = set(ENGLISH_STOP_WORDS)
 
 STEMMER = PorterStemmer()
 
 
-def preprocess_text(text: str) -> str:
+def preprocess_text(text: str, preserve_urls: bool = False) -> str:
     """
     Applies sequential NLP preprocessing steps on a raw text string.
 
     Steps:
     1. Check for null or non-string input.
     2. Convert to lowercase.
-    3. Remove punctuation and non-alphanumeric characters (keeping spaces).
-    4. Tokenize into individual words by whitespace.
-    5. Remove English stopwords.
-    6. Apply Porter Stemmer to reduce words to root form.
-    7. Rejoin into a single normalized space-separated string.
+    3. Normalize or strip URLs and email addresses.
+    4. Remove punctuation and non-alphanumeric characters (keeping spaces).
+    5. Tokenize into individual words by whitespace.
+    6. Remove English stopwords.
+    7. Apply Porter Stemmer to reduce words to root form.
+    8. Rejoin into a single normalized space-separated string.
     """
     if not isinstance(text, str):
         return ""
@@ -45,9 +52,13 @@ def preprocess_text(text: str) -> str:
     # Step 1: Lowercase conversion
     text = text.lower()
 
-    # Step 2: Remove URLs and email addresses
-    text = re.sub(r'https?://\S+|www\.\S+', '', text)
-    text = re.sub(r'\S+@\S+', '', text)
+    # Step 2: Remove or normalize URLs and email addresses
+    if preserve_urls:
+        text = re.sub(r'https?://\S+|www\.\S+', ' urltoken ', text)
+        text = re.sub(r'\S+@\S+', ' emailtoken ', text)
+    else:
+        text = re.sub(r'https?://\S+|www\.\S+', '', text)
+        text = re.sub(r'\S+@\S+', '', text)
 
     # Step 3: Remove punctuation and non-alphanumeric characters
     # Keep alphanumeric characters and spaces

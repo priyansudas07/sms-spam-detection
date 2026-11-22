@@ -432,7 +432,7 @@ if nav_selection == "Message Analyzer":
                 "Feature Extraction",
                 ["Auto-Adaptive (Both)", "TF-IDF", "CountVectorizer"],
                 index=0,
-                help="Auto-Adaptive evaluates both TF-IDF and CountVectorizer across all models. Or choose a specific technique."
+                help="Auto-Adaptive evaluates both TF-IDF and CountVectorizer across all models. For single models, it defaults to TF-IDF unless explicitly specified."
             )
         with c_pipe2:
             model_choice = st.selectbox(
@@ -445,7 +445,7 @@ if nav_selection == "Message Analyzer":
                     "Multinomial Naive Bayes"
                 ],
                 index=0,
-                help="Auto-Consensus automatically evaluates all 8 pipelines in parallel and triggers threat defense if any model flags spam."
+                help="Auto-Consensus evaluates all 8 pipelines concurrently in real time and triggers threat defense if any model flags spam."
             )
 
         # Preset Academic Samples
@@ -623,11 +623,12 @@ if nav_selection == "Message Analyzer":
                     """, unsafe_allow_html=True)
                 with t3:
                     prob_val = f"{probs[1]*100:.1f}%" if probs is not None else "N/A"
+                    prob_caption = "Max Ensemble Prob" if is_auto_ensemble else ("Platt Calibrated" if "SVM" in model_choice else "Posterior Probability")
                     st.markdown(f"""
                     <div class="metric-panel">
                         <div class="metric-panel-label">Spam Probability</div>
                         <div style="font-size: 1.25rem; font-weight: 700; color: {'#E66B36' if pred==1 else '#27866B'};">{prob_val}</div>
-                        <div class="metric-panel-caption">{"Max Ensemble Prob" if is_auto_ensemble else "Platt Calibrated"}</div>
+                        <div class="metric-panel-caption">{prob_caption}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -739,7 +740,7 @@ elif nav_selection == "Model Performance":
         <div class="metric-panel">
             <div class="metric-panel-label">Top F1-Score</div>
             <div class="metric-panel-value">92.24%</div>
-            <div class="metric-panel-caption">TF-IDF + Linear SVM (Balanced)</div>
+            <div class="metric-panel-caption">TF-IDF + Linear SVM (Top F1)</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1016,16 +1017,21 @@ elif nav_selection == "About Project":
         </div>
         """, unsafe_allow_html=True)
 
+    import platform
+    import sklearn
+    import nltk
+    import numpy as np
+
     with c_ab2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="editorial-card">
             <h4 style="margin-top: 0;">Technology Stack</h4>
             <ul style="font-size: 0.88rem; line-height: 1.6; color: #17232D; padding-left: 18px;">
-                <li><strong>Language:</strong> Python 3.14</li>
-                <li><strong>Core ML:</strong> Scikit-learn 1.9</li>
-                <li><strong>NLP & Tokenization:</strong> NLTK 3.10 (Porter Stemmer)</li>
-                <li><strong>Data Processing:</strong> Pandas 3.0 & NumPy 2.4</li>
-                <li><strong>Workstation UI:</strong> Streamlit 1.61</li>
+                <li><strong>Language:</strong> Python {platform.python_version()}</li>
+                <li><strong>Core ML:</strong> Scikit-learn {sklearn.__version__}</li>
+                <li><strong>NLP & Tokenization:</strong> NLTK {nltk.__version__} (Porter Stemmer)</li>
+                <li><strong>Data Processing:</strong> Pandas {pd.__version__} & NumPy {np.__version__}</li>
+                <li><strong>Workstation UI:</strong> Streamlit {st.__version__}</li>
                 <li><strong>Visualizations:</strong> Seaborn & Matplotlib</li>
             </ul>
         </div>
