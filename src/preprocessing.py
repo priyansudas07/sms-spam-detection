@@ -34,12 +34,8 @@ NEGATION_WORDS = {
 try:
     _raw_stopwords = set(stopwords.words('english'))
 except Exception:
-    try:
-        nltk.download('stopwords', quiet=True)
-        _raw_stopwords = set(stopwords.words('english'))
-    except Exception:
-        from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-        _raw_stopwords = set(ENGLISH_STOP_WORDS)
+    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+    _raw_stopwords = set(ENGLISH_STOP_WORDS)
 
 # Stopwords with negations preserved
 STOPWORDS = _raw_stopwords - NEGATION_WORDS

@@ -600,14 +600,14 @@ def generate_markdown_report(metrics, df_ablation):
 Spam messages display a strictly constrained, high-density length profile compared to conversational ham messages.
 
 ### A. Character Length Distribution (Cleaned Corpus, $N = 5,160$)
-| Population | Sample Count ($N$) | Mean | Std Dev ($\sigma$) | Median | Min | 25th % | 75th % | 95th % | Max |
+| Population | Sample Count ($N$) | Mean | Std Dev (Std) | Median | Min | 25th % | 75th % | 95th % | Max |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Overall Corpus** | 5,160 | 79.14 | 58.29 | 61.0 | 2 | 36.0 | 118.0 | 160.0 | 910 |
 | **Legitimate (Ham)** | 4,518 | 70.86 | 56.58 | 53.0 | 2 | 34.0 | 91.0 | 159.0 | 910 |
 | **Spam Messages** | 642 | **137.41** | **29.98** | **148.0** | 13 | **131.0** | **157.0** | **162.0** | 223 |
 
 ### B. Word Count Distribution (Cleaned Corpus, $N = 5,160$)
-| Population | Sample Count ($N$) | Mean | Std Dev ($\sigma$) | Median | Min | 25th % | 75th % | 95th % | Max |
+| Population | Sample Count ($N$) | Mean | Std Dev (Std) | Median | Min | 25th % | 75th % | 95th % | Max |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Overall Corpus** | 5,160 | 15.41 | 11.10 | 12.0 | 1 | 7.0 | 22.0 | 32.1 | 171 |
 | **Legitimate (Ham)** | 4,518 | 14.23 | 11.16 | 11.0 | 1 | 7.0 | 19.0 | 33.0 | 171 |
