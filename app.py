@@ -430,26 +430,28 @@ if nav_selection == "Message Analyzer":
         with c_pipe1:
             feature_choice = st.selectbox(
                 "Feature Extraction",
-                ["TF-IDF", "CountVectorizer"],
+                ["Auto-Adaptive (Both)", "TF-IDF", "CountVectorizer"],
                 index=0,
-                help="TF-IDF applies sublinear document weighting; CountVectorizer computes raw token frequency."
+                help="Auto-Adaptive evaluates both TF-IDF and CountVectorizer across all models. Or choose a specific technique."
             )
         with c_pipe2:
             model_choice = st.selectbox(
                 "Classifier Model",
                 [
+                    "⚡ Auto-Consensus Ensemble (Multi-Model Defense)",
                     "Linear Support Vector Machine",
                     "Bernoulli Naive Bayes",
                     "Logistic Regression",
                     "Multinomial Naive Bayes"
                 ],
                 index=0,
-                help="Supervised learning classifier architecture."
+                help="Auto-Consensus automatically evaluates all 8 pipelines in parallel and triggers threat defense if any model flags spam."
             )
 
         # Preset Academic Samples
         sample_catalog = {
             "-- Select sample or compose custom text --": "",
+            "🚨 USPS Package Delivery Smishing": "USPS Notice: Your package could not be delivered today due to an incorrect house number. Please update your delivery address and pay the $1.99 redelivery fee at http://usps-tracking-portal-update.com within 12 hours.",
             "🚨 Phishing / Banking Urgent Claim": "WINNER!! As a valued network customer you have been selected to receive a £900 prize reward! Call 09061701461 to claim. Claim code KL341.",
             "🚨 Lottery Cash Offer": "URGENT! Your mobile account has won a guaranteed £1000 cash prize. Reply CLAIM to 87121 immediately. Terms apply £1.50/msg.",
             "✅ Peer Meeting Notice": "Hey mate, are you coming over to the university library this afternoon to finish the Research Methodology slides?",
@@ -505,28 +507,76 @@ if nav_selection == "Message Analyzer":
             if not text_input.strip():
                 st.warning("Please enter an SMS text message to analyze.")
             else:
-                with st.spinner("Processing text normalization & linear inference..."):
-                    time.sleep(0.08)  # Subtle realistic analysis transition
-                    pipeline = load_pipeline(feature_choice, model_choice)
+                with st.spinner("Executing real-time multi-model intelligence inference..."):
                     start_t = time.perf_counter()
-                    pred = pipeline.predict([text_input])[0]
-                    latency_ms = (time.perf_counter() - start_t) * 1000
+                    cleaned_tokens = preprocess_text(text_input)
 
-                    probs = None
-                    if hasattr(pipeline, "predict_proba"):
-                        try:
-                            probs = pipeline.predict_proba([text_input])[0]
-                        except Exception:
-                            pass
+                    # Run all 8 pipelines
+                    consensus_rows = []
+                    spam_votes = 0
+                    highest_spam_prob = 0.0
+                    triggering_models = []
+
+                    for (feat, algo), filename in MODEL_FILES.items():
+                        p = load_pipeline(feat, algo)
+                        p_pred = p.predict([text_input])[0]
+                        p_prob = None
+                        if hasattr(p, "predict_proba"):
+                            try:
+                                p_prob = p.predict_proba([text_input])[0][1]
+                            except Exception:
+                                pass
+                        if p_prob is None:
+                            p_prob = 1.0 if p_pred == 1 else 0.0
+
+                        if p_pred == 1:
+                            spam_votes += 1
+                            triggering_models.append(f"{algo} ({feat})")
+                        if p_prob > highest_spam_prob:
+                            highest_spam_prob = p_prob
+
+                        consensus_rows.append({
+                            "Algorithm": algo,
+                            "Vectorizer": feat,
+                            "Verdict": "🚨 SPAM" if p_pred == 1 else "✅ SAFE",
+                            "Spam Probability": f"{p_prob*100:.1f}%"
+                        })
+
+                    is_auto_ensemble = "Auto-Consensus" in model_choice
+
+                    if is_auto_ensemble:
+                        # Auto-defense: if any sensitive model flags threat, alert threat
+                        pred = 1 if spam_votes > 0 else 0
+                        probs = [1.0 - highest_spam_prob, highest_spam_prob]
+                        active_pipeline_name = "Ensemble"
+                        active_feat_name = "Auto-Adaptive"
+                    else:
+                        active_feat = feature_choice if feature_choice in ["TF-IDF", "CountVectorizer"] else "TF-IDF"
+                        pipeline = load_pipeline(active_feat, model_choice)
+                        pred = pipeline.predict([text_input])[0]
+                        probs = None
+                        if hasattr(pipeline, "predict_proba"):
+                            try:
+                                probs = pipeline.predict_proba([text_input])[0]
+                            except Exception:
+                                pass
+                        if probs is None:
+                            probs = [0.0, 1.0] if pred == 1 else [1.0, 0.0]
+                        active_pipeline_name = model_choice.split()[0]
+                        active_feat_name = active_feat
+
+                    latency_ms = (time.perf_counter() - start_t) * 1000
 
                 # Render Verdict Card
                 if pred == 1:
+                    sub_title = f"AUTO-DEFENSE TRIGGERED ({spam_votes}/8 Models Flagged Threat)" if is_auto_ensemble else "THREAT LEVEL: HIGH"
+                    detail_p = f"Threat indicators identified by {', '.join(triggering_models[:2])}. High-sensitivity models detected fraudulent intent, fee traps, or credential smishing despite conversational masking." if is_auto_ensemble else "This message matches characteristic fraudulent patterns, unsolicited marketing, or credential phishing hooks."
                     st.markdown(f"""
                     <div class="verdict-box-spam">
                         <span class="verdict-badge-spam">SPAM DETECTED</span>
-                        <h2 style="color: #E66B36; margin: 4px 0 8px 0; font-size: 1.6rem;">THREAT LEVEL: HIGH</h2>
+                        <h2 style="color: #E66B36; margin: 4px 0 8px 0; font-size: 1.55rem;">{sub_title}</h2>
                         <p style="color: #17232D; font-size: 0.90rem; margin: 0; line-height: 1.5;">
-                            This message matches characteristic fraudulent patterns, unsolicited marketing, or credential phishing hooks.
+                            {detail_p}
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -534,10 +584,20 @@ if nav_selection == "Message Analyzer":
                     st.markdown(f"""
                     <div class="verdict-box-ham">
                         <span class="verdict-badge-ham">SAFE (HAM)</span>
-                        <h2 style="color: #27866B; margin: 4px 0 8px 0; font-size: 1.6rem;">AUTHENTIC MESSAGE</h2>
+                        <h2 style="color: #27866B; margin: 4px 0 8px 0; font-size: 1.55rem;">AUTHENTIC MESSAGE</h2>
                         <p style="color: #17232D; font-size: 0.90rem; margin: 0; line-height: 1.5;">
-                            Linguistic analysis indicates regular conversational or informational message content. No unauthorized threat triggers detected.
+                            Linguistic analysis indicates regular conversational or informational message content. No unauthorized threat triggers detected across evaluated models.
                         </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Cross-Model Warning Alert when single model said SAFE but other models flagged SPAM
+                if not is_auto_ensemble and pred == 0 and spam_votes > 0:
+                    st.markdown(f"""
+                    <div style="background: #FFF5F0; border: 1px solid #E66B36; border-left: 6px solid #E66B36; border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 0.85rem; line-height: 1.5;">
+                        <strong style="color: #E66B36;">⚠️ AUTO-DEFENSE ALERT: Cross-Model Threat Detected!</strong><br>
+                        While <em>{model_choice} ({active_feat_name})</em> categorized this message as SAFE due to conversational words, 
+                        <strong>{spam_votes} other pipeline(s)</strong> (including <strong>{triggering_models[0]}</strong>) flagged it as <strong>🚨 SPAM</strong>.
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -549,8 +609,8 @@ if nav_selection == "Message Analyzer":
                     st.markdown(f"""
                     <div class="metric-panel">
                         <div class="metric-panel-label">Pipeline</div>
-                        <div style="font-size: 0.88rem; font-weight: 700; color: #17232D;">{model_choice.split()[0]}</div>
-                        <div class="metric-panel-caption">{feature_choice}</div>
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #17232D;">{active_pipeline_name}</div>
+                        <div class="metric-panel-caption">{active_feat_name}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with t2:
@@ -558,7 +618,7 @@ if nav_selection == "Message Analyzer":
                     <div class="metric-panel">
                         <div class="metric-panel-label">Inference Latency</div>
                         <div style="font-size: 1.25rem; font-weight: 700; color: #17232D;">{latency_ms:.1f} ms</div>
-                        <div class="metric-panel-caption">Single Sample</div>
+                        <div class="metric-panel-caption">{"All 8 Models" if is_auto_ensemble else "Single Sample"}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with t3:
@@ -567,7 +627,7 @@ if nav_selection == "Message Analyzer":
                     <div class="metric-panel">
                         <div class="metric-panel-label">Spam Probability</div>
                         <div style="font-size: 1.25rem; font-weight: 700; color: {'#E66B36' if pred==1 else '#27866B'};">{prob_val}</div>
-                        <div class="metric-panel-caption">Platt Calibrated</div>
+                        <div class="metric-panel-caption">{"Max Ensemble Prob" if is_auto_ensemble else "Platt Calibrated"}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -584,7 +644,6 @@ if nav_selection == "Message Analyzer":
 
                 # Normalized Tokens
                 st.markdown("<br>", unsafe_allow_html=True)
-                cleaned_tokens = preprocess_text(text_input)
                 st.markdown("**NLP Root Token Representation:**")
                 st.markdown(f"""
                 <div class="tech-tag" style="display: block; padding: 10px 14px; background: #FFFFFF; font-size: 0.82rem; border: 1px solid #D9DFE1; color: #17232D; margin-bottom: 16px;">
@@ -594,20 +653,6 @@ if nav_selection == "Message Analyzer":
 
                 # --- Cross-Model Consensus Radar (All 8 Pipelines) ---
                 st.markdown("##### 🔍 Multi-Model Consensus (All 8 Pipelines)")
-                consensus_rows = []
-                spam_votes = 0
-                for (feat, algo), filename in MODEL_FILES.items():
-                    p = load_pipeline(feat, algo)
-                    p_pred = p.predict([text_input])[0]
-                    p_prob = p.predict_proba([text_input])[0][1] if hasattr(p, "predict_proba") else None
-                    if p_pred == 1:
-                        spam_votes += 1
-                    consensus_rows.append({
-                        "Algorithm": algo,
-                        "Vectorizer": feat,
-                        "Verdict": "🚨 SPAM" if p_pred == 1 else "✅ SAFE",
-                        "Spam Probability": f"{p_prob*100:.1f}%" if p_prob is not None else "N/A"
-                    })
 
                 if spam_votes >= 5:
                     status_html = f"<span style='color: #E66B36; font-weight: 700;'>🚨 HIGH THREAT CONSENSUS ({spam_votes}/8 Models Flagged SPAM)</span>"
