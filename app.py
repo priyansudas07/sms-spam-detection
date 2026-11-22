@@ -587,10 +587,46 @@ if nav_selection == "Message Analyzer":
                 cleaned_tokens = preprocess_text(text_input)
                 st.markdown("**NLP Root Token Representation:**")
                 st.markdown(f"""
-                <div class="tech-tag" style="display: block; padding: 10px 14px; background: #FFFFFF; font-size: 0.82rem; border: 1px solid #D9DFE1; color: #17232D;">
+                <div class="tech-tag" style="display: block; padding: 10px 14px; background: #FFFFFF; font-size: 0.82rem; border: 1px solid #D9DFE1; color: #17232D; margin-bottom: 16px;">
                     {cleaned_tokens or '[All tokens filtered as standard English stopwords]'}
                 </div>
                 """, unsafe_allow_html=True)
+
+                # --- Cross-Model Consensus Radar (All 8 Pipelines) ---
+                st.markdown("##### 🔍 Multi-Model Consensus (All 8 Pipelines)")
+                consensus_rows = []
+                spam_votes = 0
+                for (feat, algo), filename in MODEL_FILES.items():
+                    p = load_pipeline(feat, algo)
+                    p_pred = p.predict([text_input])[0]
+                    p_prob = p.predict_proba([text_input])[0][1] if hasattr(p, "predict_proba") else None
+                    if p_pred == 1:
+                        spam_votes += 1
+                    consensus_rows.append({
+                        "Algorithm": algo,
+                        "Vectorizer": feat,
+                        "Verdict": "🚨 SPAM" if p_pred == 1 else "✅ SAFE",
+                        "Spam Probability": f"{p_prob*100:.1f}%" if p_prob is not None else "N/A"
+                    })
+
+                if spam_votes >= 5:
+                    status_html = f"<span style='color: #E66B36; font-weight: 700;'>🚨 HIGH THREAT CONSENSUS ({spam_votes}/8 Models Flagged SPAM)</span>"
+                elif spam_votes > 0:
+                    status_html = f"<span style='color: #E66B36; font-weight: 700;'>⚠️ DISCORDANT / PARTIAL THREAT ({spam_votes}/8 Models Flagged SPAM)</span>"
+                else:
+                    status_html = f"<span style='color: #27866B; font-weight: 700;'>✅ UNANIMOUS SAFE (0/8 Models Flagged SPAM)</span>"
+
+                st.markdown(f"""
+                <div style="background: #FFFFFF; border: 1px solid #D9DFE1; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; font-size: 0.84rem; line-height: 1.6;">
+                    <div><strong>Consensus Radar:</strong> {status_html}</div>
+                    <div style="color: #68747B; font-size: 0.78rem; margin-top: 2px;">
+                        Models diverge on conversational smishing: Bernoulli NB triggers on binary keywords ('fee', 'pay'), while TF-IDF Linear SVM discounts them due to frequent benign terms.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                df_consensus = pd.DataFrame(consensus_rows)
+                st.dataframe(df_consensus, use_container_width=True, hide_index=True)
         else:
             st.markdown("""
             <div class="empty-state-box">
