@@ -1,58 +1,181 @@
 # Comparative Analysis of Machine Learning Algorithms for SMS Spam Detection
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+**SIGNAL — SMS Intelligence Lab | Empirical Machine Learning Research & Telecommunication Security Workstation**
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Scikit-Learn 1.3+](https://img.shields.io/badge/Scikit--Learn-1.3%2B-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![Streamlit 1.28+](https://img.shields.io/badge/Streamlit-1.28%2B-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![NLTK 3.8+](https://img.shields.io/badge/NLTK-3.8%2B-green?logo=python&logoColor=white)](https://www.nltk.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](http://localhost:8501)
-[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3%2B-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![Status](https://img.shields.io/badge/Status-Completed-success)](#)
-
-A machine learning research project exploring and comparing traditional classification algorithms for identifying spam and legitimate SMS messages using Natural Language Processing (NLP).
-
-[Live Demo](#live-application) · [Documentation](#methodology) · [Research Comparison](#comparison-with-ieee-research) · [Author](#author)
+[![Academic: RM](https://img.shields.io/badge/Academic-Research%20Methodologies%20(RM)-8A2BE2)](#author-information)
+[![Status: Completed](https://img.shields.io/badge/Status-Completed%20%26%20Verified-success)](#model-performance-table)
 
 ---
 
-## Overview
+## Short Project Description
 
-SMS messaging remains a universal telecommunication channel, but it is frequently exploited for unsolicited advertisements, fraudulent financial schemes, and smishing attacks.
-
-This project investigates the effectiveness of traditional machine learning algorithms in distinguishing spam messages from legitimate messages (ham).
-
-Using the official **UCI SMS Spam Collection dataset**, the project applies natural language preprocessing, feature extraction (**TF-IDF** and **CountVectorizer**), and supervised machine learning techniques to construct, optimize, and evaluate classification models under a **$2 \times 4$ full factorial experimental design**.
-
-The primary objective is to compare model performance using multiple evaluation metrics, analyze the impact of feature extraction techniques, and identify the most suitable classifier for authentic imbalanced SMS traffic.
+An academic machine learning research investigation conducting a **$2 \times 4$ full factorial empirical evaluation** of traditional linear and probabilistic classifiers for mobile SMS spam detection using the official UCI SMS Spam Collection repository. The study rigorously compares continuous **Sublinear TF-IDF** against discrete **CountVectorizer (Bag-of-Words)**, evaluates a **5-regime NLP preprocessing ablation**, enforces **true multivariate Bernoulli event binarization**, guarantees **zero data leakage** via encapsulated pipelines, and benchmarks findings against the **IEEE TENCON 2023** published baseline (*Robert G. de Luna et al.*).
 
 ---
 
-## Key Features
+## Application Screenshot
 
-- **Binary Text Classification:** Accurate detection of SMS spam versus legitimate ham.
-- **NLP Normalization Pipeline:** Lowercasing, URL/email/punctuation removal, whitespace tokenization, stopword removal, and Porter stemming.
-- **Dual Feature Extraction:** Systematic comparison between **TF-IDF Vectorizer** (with sublinear frequency scaling) and **CountVectorizer** (Bag-of-Words).
-- **Mathematical Binarization:** Strict binary presence/absence indicator representation ($x_{ij} \in \{0, 1\}$) for Bernoulli Naive Bayes.
-- **Zero Data Leakage:** Preprocessing and vectorizer fitting restricted exclusively to training data via Scikit-learn Pipelines.
-- **Hyperparameter Optimization:** Stratified 5-Fold Cross Validation using `GridSearchCV`.
-- **Multi-Metric Evaluation:** Accuracy, Precision, Recall, $F_1$-score, and Confusion Matrices on an untouched test split.
-- **Visual Analytics:** High-resolution charts for metric comparison, macro feature extraction differences, and an 8-panel confusion matrix grid.
-- **SIGNAL Workstation App:** Real-time interactive Streamlit web application with custom telecommunications security lab styling.
-- **Academic Benchmark Validation:** Detailed comparison against published results from IEEE TENCON 2023 (*Robert G. de Luna et al.*).
+The project features a full-featured telecommunications security workstation built with Streamlit, applying an editorial Swiss aesthetic with real-time inference profiling, semantic preprocessing inspections, and interactive metric explorations:
+
+![SIGNAL Workstation — Message Analyzer](reports/figures/app_screenshot.png)
+
+*Figure: SIGNAL Message Analyzer module performing real-time inference, tokenization breakdown, and runtime latency profiling with zero data leakage.*
+
+---
+
+## Project Overview
+
+Short Message Service (SMS) remains a universally trusted cellular communications protocol with open rates exceeding 90%. However, this reliability makes subscribers prime targets for smishing (SMS phishing), fraudulent banking lures, and unsolicited commercial campaigns.
+
+Automated spam classification in cellular networks presents fundamental methodological trade-offs:
+1. **Severe Class Imbalance:** Legitimate messages (ham) naturally outnumber spam messages (~7:1 in real traffic). Naive accuracy maximization produces deceptive models that ignore minority spam patterns or trigger unacceptable false alarms.
+2. **Short Text Sparsity:** SMS messages are bounded by GSM character limits (typically 160 characters), resulting in ultra-sparse lexical matrices with limited contextual syntax compared to emails or long-form documents.
+3. **Severe Cost Asymmetry:** In operational telecommunications, a **False Positive (FP)** (blocking a legitimate personal, banking, or medical text) carries severe liability, whereas a **False Negative (FN)** (a promotional spam text reaching the inbox) is a minor inconvenience. Consequently, **Precision** and low false-alarm rates must be prioritized alongside overall detection recall.
 
 ---
 
 ## Research Objectives
 
-1. To develop a machine learning-based SMS spam detection system with zero data leakage.
-2. To investigate the effectiveness of different traditional classification algorithms.
-3. To conduct a $2 \times 4$ factorial comparison of **TF-IDF** versus **CountVectorizer** across all models.
-4. To evaluate models thoroughly using accuracy, precision, recall, and $F_1$-score on natural imbalanced data.
-5. To identify the best-performing algorithm and feature extraction combination based on actual experimental results.
-6. To benchmark experimental findings against an existing IEEE research paper.
+1. **Zero Data Leakage Pipeline:** Construct encapsulated Scikit-learn `Pipeline` architectures ensuring vectorizer vocabulary fitting and IDF calculations occur strictly within training folds.
+2. **$2 \times 4$ Full Factorial Design:** Evaluate two feature extraction methodologies (Sublinear TF-IDF vs. CountVectorizer) across four classifiers (Multinomial NB, Bernoulli NB, Logistic Regression, Linear SVM).
+3. **Mathematical Binarization:** Enforce true multivariate Bernoulli event space modeling ($x_{ij} \in \{0, 1\}$) for Bernoulli Naive Bayes.
+4. **Natural Imbalance Preservation:** Preserve the authentic 87.56% : 12.44% class distribution without synthetic SMOTE generation or artificial ham undersampling.
+5. **Training-Driven Model Selection:** Select the preferred champion model strictly based on Stratified 5-Fold Cross-Validation $F_1$-score on $X_{\text{train}}$, evaluating the champion once on an untouched test partition ($X_{\text{test}}$) to prevent data snooping bias.
+6. **NLP Preprocessing Ablation:** Empirically quantify the impact of case normalization, aggressive stopword stripping, semantic token substitution, and negation preservation.
+7. **Authoritative IEEE Benchmark:** Conduct an external benchmark validation against the published metrics from IEEE TENCON 2023 (*de Luna et al.*) under documented methodological variance.
 
 ---
 
-## Methodology
+## Key Features
 
-The project follows a structured research methodology:
+- **End-to-End Leakage-Free Architecture:** Vectorizers, scalers, and estimators encapsulated in `Pipeline` objects with fixed random seeds (`random_state=42`).
+- **5-Regime Preprocessing Ablation:** Empirical evidence demonstrating why semantic token substitution (`urltoken`, `currencytoken`) outperforms aggressive text stripping.
+- **Factorial Experimental Matrix:** 8 distinct combinations evaluated under identical stratified partitions.
+- **Dual Model Profiling:** Clear reporting distinguishing the **Training Validation Champion** from the **Peak Observed Test Score**.
+- **8-Panel Confusion Matrix Visual Grid:** Complete transparency reporting True Negatives, False Positives, Missed Spam, and Blocked Spam.
+- **SIGNAL Streamlit Workstation:** 5-page interactive dashboard (Message Analyzer, Model Performance, Dataset Explorer, Research Comparison, About Project).
+- **Publication-Ready Artifacts:** Automatically generated 300 DPI comparative charts and a formal 7-page academic PDF report.
+
+---
+
+## Dataset Description
+
+**Source:** [UCI Machine Learning Repository — SMS Spam Collection (Dataset ID: 228)](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
+
+The dataset represents authentic, mobile-collected SMS communications labeled as:
+- **Ham (0):** Legitimate personal communications, administrative notifications, and informational texts.
+- **Spam (1):** Unsolicited commercial advertisements, premium lottery lures, credit offers, and phishing attempts.
+
+---
+
+## Dataset Statistics
+
+Every statistic presented below was verified via automated dataset integrity scripts (`src/dataset_and_preprocessing_audit.py`):
+
+### Corpus Verification Breakdown:
+| Dataset Attribute | Ingested / Audited Value | Academic & Integrity Notes |
+| :--- | :---: | :--- |
+| **Total Ingested Raw Records** | **5,574** | Single tab-separated format (`v1 \t v2`). |
+| **Missing / Null Records** | **0** | No null labels or empty message bodies. |
+| **Conflicting Labels Audit** | **0** | No identical messages carrying conflicting (ham vs spam) labels. |
+| **Whitespace Duplicates Removed** | **414** | Dropped to prevent training-test data leakage. |
+| **Cleaned Unique Messages** | **5,160** | Final authentic evaluated corpus. |
+| **Ham Messages (Legitimate)** | **4,518 (87.56%)** | Natural majority class prevalence. |
+| **Spam Messages (Threat)** | **642 (12.44%)** | Authentic minority class prevalence. |
+| **Natural Imbalance Ratio** | **7.04 : 1** | Ham-to-spam ratio in genuine traffic. |
+| **Training Partition ($X_{\text{train}}$, 80%)** | **4,128 messages** | 3,614 Ham (87.55%) / 514 Spam (12.45%). |
+| **Testing Partition ($X_{\text{test}}$, 20%)** | **1,032 messages** | 904 Ham (87.60%) / 128 Spam (12.40%). |
+
+### Morphological Text Length & Word Statistics:
+| Class Subset | Metric | Mean ± Std | Median | IQR | Min | 90th %ile | Max |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Ham (Legitimate)** | Character Length | 70.86 ± 56.58 | 53.0 | 57.0 | 2 | 143.0 | 910 |
+| | Word Count | 14.23 ± 11.16 | 11.0 | 12.0 | 1 | 28.0 | 171 |
+| **Spam (Threat)** | Character Length | 137.41 ± 29.98 | 148.0 | 26.0 | 13 | 160.0 | 223 |
+| | Word Count | 23.70 ± 5.97 | 25.0 | 6.75 | 2 | 30.0 | 35 |
+| **Entire Clean Corpus** | Character Length | 79.14 ± 58.29 | 61.0 | 82.0 | 2 | 155.0 | 910 |
+| | Word Count | 15.41 ± 11.10 | 12.0 | 15.0 | 1 | 29.0 | 171 |
+
+```
+HAM LENGTH DISTRIBUTION   :  [▄█▆▂                     ] (Broad variance, median 53 chars)
+SPAM LENGTH DISTRIBUTION  :  [          ▂▄███▇        ] (Dense clustering near 150-160 chars)
+```
+
+![Class Distribution](reports/figures/class_distribution.png)
+*Figure: Natural class distribution and message length distributions across ham and spam.*
+
+---
+
+## Preprocessing Methodology
+
+Aggressive text cleaning in spam detection is often counterproductive because smishing relies on explicit operational patterns (hyperlinks, currency symbols, urgent phone numbers). We conducted an empirical **5-regime preprocessing ablation** using Stratified 5-Fold Cross-Validation on $X_{\text{train}}$:
+
+1. **Regime 1 (Raw Baseline):** Unprocessed text with whitespace tokenization.
+2. **Regime 2 (Case Normalization):** Lowercasing only.
+3. **Regime 3 (Aggressive Noise Stripping):** Lowercasing + stripping punctuation, URLs, numbers + Porter stemming.
+4. **Regime 4 (Standard Stopword Stripping):** Regime 3 + aggressive NLTK English stopword removal.
+5. **Regime 5 (Semantic Token Substitution & Negation Preservation — Proposed):**
+   - URLs substituted with `urltoken` (preserves smishing presence while abstracting specific domain variance).
+   - Email addresses substituted with `emailtoken`.
+   - Currency symbols (£, $, €, ₹) substituted with `currencytoken` (captures financial lures).
+   - Phone numbers substituted with `phonetoken`.
+   - Critical negation words (`not`, `no`, `nor`, `never`, `without`, `neither`, `cannot`) explicitly preserved.
+   - Punctuation removal and Porter stemming.
+
+### 5-Regime Preprocessing Ablation Results:
+| Preprocessing Regime | Mean CV Accuracy | Mean CV Precision | Mean CV Recall | Mean CV $F_1$-Score | Operational Impact |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Regime 1: Raw Baseline** | 97.41% | 94.62% | 84.44% | 89.24% | Baseline token frequency. |
+| **Regime 2: Lowercase Only** | 97.58% | 95.10% | 85.02% | 89.77% | Minimal improvement from case folding. |
+| **Regime 3: Aggressive Stripping** | 97.89% | 95.84% | 86.96% | 91.19% | Deleting URLs erases key smishing indicators. |
+| **Regime 4: Stopword Removal** | 97.65% | 94.88% | 85.80% | 90.11% | Removing stopwords strips context and negations. |
+| **Regime 5: Semantic Tokens (Proposed)** | **98.28%** | **96.88%** | **89.11%** | **92.83%** | **Optimal:** Retains smishing intent, protects precision. |
+
+![Preprocessing Ablation Comparison](reports/figures/preprocessing_ablation_comparison.png)
+*Figure: Preprocessing ablation comparison across all five evaluation regimes.*
+
+---
+
+## Feature Extraction Methods
+
+Two distinct vectorization techniques were evaluated under a factorial matrix:
+
+### 1. Sublinear TF-IDF Vectorizer
+Calculates weighted importance based on local term frequency and inverse corpus rarity:
+$$\text{TF}(t, d) = 1 + \log(f_{t,d}) \quad \text{for } f_{t,d} > 0$$
+$$\text{IDF}(t, D) = \log\left(\frac{1 + |D|}{1 + |\{d \in D : t \in d\}|}\right) + 1$$
+$$\text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \text{IDF}(t, D)$$
+Sublinear scaling dampens high-frequency promotional terms, preventing common tokens from overwhelming linear decision boundaries. Evaluated with unigram and bigram collocations (`ngram_range=(1, 2)`).
+
+### 2. CountVectorizer (Bag-of-Words)
+Constructs sparse vectors based on raw token occurrence counts ($x_{ij} = f_{j, i}$). Serves as the primary baseline feature representation used in the IEEE TENCON 2023 study.
+
+### 3. Strict Binary Event Space for Bernoulli Naive Bayes
+Because BernoulliNB models a multivariate Bernoulli event space, inputs must represent binary Boolean token indicators:
+$$x_{ij} \in \{0, 1\}$$
+Configured strictly using `binary=True` in vectorizers and `binarize=0.0` in `BernoulliNB`.
+
+---
+
+## Machine Learning Algorithms
+
+Four classical supervised algorithms were analyzed for their discriminative and probabilistic characteristics:
+
+| Algorithm | Model Architecture | Mathematical Formulation | Optimization Parameter Grid |
+| :--- | :--- | :--- | :--- |
+| **Multinomial Naive Bayes (MNB)** | Generative multinomial likelihood | $P(c \mid \mathbf{x}) \propto P(c) \prod_{j=1}^{V} P(w_j \mid c)^{x_j}$ | Smoothing parameter: $\alpha \in [0.01, 0.1, 0.5, 1.0]$ |
+| **Bernoulli Naive Bayes (BNB)** | Multivariate Bernoulli event model | $P(c \mid \mathbf{x}) \propto P(c) \prod_{j=1}^{V} [P_j^{x_j} (1 - P_j)^{1 - x_j}]$ | Smoothing parameter: $\alpha \in [0.01, 0.1, 0.5, 1.0]$ |
+| **Logistic Regression (LR)** | Parametric linear log-odds | $P(y=1 \mid \mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + b)$ | Inverse regularization: $C \in [0.1, 1.0, 5.0, 10.0]$; Solver: `lbfgs`, `liblinear` |
+| **Linear Support Vector Machine (Linear SVM)** | Maximum-margin separating hyperplane | $\min_{\mathbf{w}, b} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum \xi_i$ | Penalty: $C \in [0.1, 0.5, 1.0, 2.0]$; Platt calibration enabled |
+
+---
+
+## Experimental Methodology
 
 ```
 ┌─────────────────────────────────┐
@@ -66,194 +189,183 @@ The project follows a structured research methodology:
          ┌──────┴─────────────────────────┐
          ▼                                ▼
 ┌─────────────────┐              ┌─────────────────┐
-│ Training Split  │ (4,128 msgs) │ Testing Split   │ (1,032 msgs)
+│ Training Split  │ (4,128 msgs) │ Testing Split   │ (1,032 msgs: 904 Ham, 128 Spam)
 └────────┬────────┘              └────────┬────────┘
          │                                │
-         ├────────────────────────┐       │
+         ├────────────────────────┐       │ (Untouched during model selection)
          ▼                        ▼       │
-  [NLP Preprocessing]      [Evaluation Pipeline]
-  - Lowercase, URLs, Punct                ▲
-  - Stopwords, Stemming                   │
-         ▼                                │
-  [Feature Extraction]                    │
-  - TF-IDF (Cont. & Binary)               │
-  - CountVec (Freq. & Binary)             │
-         ▼                                │
-  [5-Fold Stratified CV]                  │
-  - MNB, BNB, LR, Linear SVM              │
-         │                                │
-         └────────────────────────────────┘
+  [NLP Preprocessing]      [5-Fold Stratified CV]
+  - Semantic substitution  - GridSearchCV on X_train
+  - Negation preservation  - Optimizing F1-score
+         ▼                        │
+  [Feature Extraction]            ▼
+  - Sublinear TF-IDF       [Champion Selection]
+  - CountVectorizer        TF-IDF + Bernoulli NB (Mean CV F1: 93.69%)
+         │                        │
+         └────────────────────────┼───────► [Final Isolated Test Evaluation]
+                                            - Accuracy, Precision, Recall, F1
+                                            - 8-Panel Confusion Matrix Grid
 ```
 
----
+- **Stratified Partitioning:** Training ($N=4,128$) and testing ($N=1,032$) partitions maintain identical 87.56% : 12.44% class ratios.
+- **Model Selection Protocol:** The champion model was selected **strictly using Mean CV $F_1$-score on $X_{\text{train}}$**.
+- **Test Set Isolation:** The test set was touched exactly once for comparative evaluation.
 
-## Dataset
-
-**Source:** [UCI Machine Learning Repository — SMS Spam Collection (ID: 228)](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
-
-The dataset contains real SMS messages labelled as:
-- **Ham:** Legitimate personal, transactional, or informational messages.
-- **Spam:** Unwanted promotions, lottery lures, or phishing attempts.
-
-### Dataset Preparation & Verification:
-
-| Dataset Property | Verified Documented Value |
-|:---|:---:|
-| **Original Raw Messages** | 5,574 |
-| **Missing Values** | 0 |
-| **Duplicate Messages Removed** | 414 |
-| **Cleaned Unique Messages** | 5,160 |
-| **Legitimate Messages (Ham)** | 4,518 (87.56%) |
-| **Spam Messages** | 642 (12.44%) |
-| **Training Partition (80%)** | 4,128 |
-| **Testing Partition (20%)** | 1,032 |
+### Training 5-Fold Cross-Validation Selection Summary:
+| Pipeline Architecture | Feature Extraction | Algorithm | Mean CV $F_1$ | Std CV $F_1$ | Optimal Hyperparameters |
+| :---: | :--- | :--- | :---: | :---: | :--- |
+| **1** | **TF-IDF** | **Bernoulli Naive Bayes** | **0.9369 [★ Champion]** | **± 0.0177** | `alpha=0.01`, `max_features=4000` |
+| 2 | CountVectorizer | Bernoulli Naive Bayes | 0.9369 | ± 0.0177 | `alpha=0.01`, `max_features=4000` |
+| 3 | TF-IDF | Linear SVM | 0.9352 | ± 0.0264 | `C=2.0`, `max_features=3000` |
+| 4 | CountVectorizer | Multinomial Naive Bayes | 0.9349 | ± 0.0173 | `alpha=0.5`, `max_features=4000` |
+| 5 | TF-IDF | Multinomial Naive Bayes | 0.9325 | ± 0.0196 | `alpha=0.1`, `max_features=4000` |
+| 6 | TF-IDF | Logistic Regression | 0.9259 | ± 0.0259 | `C=10.0`, `solver=liblinear`, `max_features=3000` |
+| 7 | CountVectorizer | Logistic Regression | 0.9233 | ± 0.0257 | `C=10.0`, `solver=lbfgs`, `max_features=4000` |
+| 8 | CountVectorizer | Linear SVM | 0.9210 | ± 0.0235 | `C=0.5`, `max_features=4000` |
 
 ---
 
-## Machine Learning Algorithms
+## Model Performance Table
 
-Four supervised machine learning algorithms are evaluated:
+All eight trained pipelines were evaluated on the untouched test partition (**1,032 samples: 904 legitimate Ham, 128 Spam threats**):
 
-| Algorithm | Description | Mathematical Basis |
-|:---|:---|:---|
-| **Multinomial Naive Bayes (MNB)** | Probabilistic text classifier | Assumes features follow a multinomial distribution representing word frequencies. |
-| **Bernoulli Naive Bayes (BNB)** | Multivariate Bernoulli model | Operates strictly on binary token presence/absence indicators ($x_{ij} \in \{0, 1\}$). |
-| **Logistic Regression (LR)** | Linear log-odds classifier | Models class posterior probabilities using the logistic sigmoid function with $L_2$ regularization. |
-| **Linear Support Vector Machine (Linear SVM)** | Maximum-margin separating hyperplane | Maximizes the geometric margin between classes in high-dimensional sparse feature space. |
+| Exp # | Feature Extraction | Classifier Algorithm | Experimental Role | Test Accuracy | Test Precision | Test Recall | Test $F_1$-Score | False Positives (FP) | Missed Spam (FN) |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **E1** | TF-IDF | Multinomial Naive Bayes | Baseline | 98.06% | 95.76% | 88.28% | 91.87% | 5 / 904 | 15 / 128 |
+| **E2** | **TF-IDF** | **Bernoulli Naive Bayes** | **★ Validation Champion** | **98.55%** | **99.13%** | **89.06%** | **93.83%** | **1 / 904** | 14 / 128 |
+| **E3** | TF-IDF | Logistic Regression | Evaluated | 98.55% | 99.13% | 89.06% | 93.83% | **1 / 904** | 14 / 128 |
+| **E4** | TF-IDF | Linear SVM | Evaluated | 98.26% | 95.08% | 90.62% | 92.80% | 6 / 904 | 12 / 128 |
+| **E5** | CountVectorizer | Multinomial Naive Bayes | Evaluated | 98.35% | 95.12% | **91.41%** | 93.23% | 6 / 904 | **11 / 128** |
+| **E6** | CountVectorizer | Bernoulli Naive Bayes | Evaluated | 98.55% | 99.13% | 89.06% | 93.83% | **1 / 904** | 14 / 128 |
+| **E7** | **CountVectorizer** | **Logistic Regression** | **Peak Test Score** | **98.84%** | **100.00%** | **90.62%** | **95.08%** | **0 / 904** | 12 / 128 |
+| **E8** | CountVectorizer | Linear SVM | Evaluated | 98.74% | 98.32% | **91.41%** | 94.74% | 2 / 904 | **11 / 128** |
 
----
-
-## Feature Extraction
-
-This research evaluates and compares two foundational feature extraction techniques:
-
-1. **TF-IDF (Term Frequency–Inverse Document Frequency):**
-   - Assigns numerical weights based on word frequency within a message and inverse rarity across the corpus.
-   - Configured with sublinear term-frequency scaling to dampen the effect of repetitive generic vocabulary.
-2. **CountVectorizer (Bag-of-Words):**
-   - Encodes absolute occurrence frequencies of tokens and token pairs (unigrams + bigrams).
-   - Serves as the baseline comparison method employed in the reference IEEE TENCON 2023 study.
+### Critical Analytical Distinctions:
+1. **Validation Champion (E2):** Selected strictly using training cross-validation ($93.69\% \text{ CV } F_1$). On unseen test data, it produced **only 1 False Positive out of 904 legitimate messages** (99.89% specificity / 0.11% false alarm rate), directly satisfying the core operational requirement of carrier telecommunications.
+2. **Peak Observed Test Score (E7):** CountVectorizer + Logistic Regression achieved the highest numerical test score (98.84% Accuracy, 95.08% $F_1$) with **zero false alarms (0 FP / 904)** and 116 blocked spam messages.
+3. **Representation Invariance:** Bernoulli Naive Bayes yielded identical test performance under both TF-IDF and CountVectorizer (98.55% Accuracy, 93.83% $F_1$, 1 FP), demonstrating that explicit presence/absence binarization ($x_{ij} \in \{0, 1\}$) isolates event probability independently of the continuous term weighting formula.
 
 ---
 
-## Model Evaluation & Experimental Results
+## Confusion Matrices
 
-Hyperparameter optimization was performed using 5-fold stratified cross-validation on `X_train`. All eight pipelines were evaluated on the reserved untouched test partition (**1,032 samples: 904 Ham, 128 Spam**):
+Detailed confusion matrix metrics for all eight evaluated pipelines on 1,032 test samples (904 Ham, 128 Spam):
 
-| Exp # | Feature Extraction | Algorithm | Accuracy | Precision (Spam) | Recall (Spam) | $F_1$-Score (Spam) | False Positives (FP) | Missed Spam (FN) |
-|:---:|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **E1** | **TF-IDF** | Multinomial NB | 97.67% | 94.07% | 86.72% | 90.24% | 7 / 904 | 17 / 128 |
-| **E2** | **TF-IDF** | Bernoulli NB *(Binary)* | 98.06% | **97.37%** | 86.72% | 91.74% | **3 / 904** | 17 / 128 |
-| **E3** | **TF-IDF** | Logistic Regression | 97.97% | 96.52% | 86.72% | 91.36% | 4 / 904 | 17 / 128 |
-| **E4** | **TF-IDF** | Linear SVM *(Top Overall)* | **98.16%** | 96.58% | 88.28% | **92.24%** | 4 / 904 | **15 / 128** |
-| **E5** | **CountVectorizer** | Multinomial NB | 97.77% | 92.68% | **89.06%** | 90.84% | 9 / 904 | **14 / 128** |
-| **E6** | **CountVectorizer** | Bernoulli NB *(Binary)* | 98.06% | **97.37%** | 86.72% | 91.74% | **3 / 904** | 17 / 128 |
-| **E7** | **CountVectorizer** | Logistic Regression | 97.87% | 97.32% | 85.16% | 90.83% | **3 / 904** | 19 / 128 |
-| **E8** | **CountVectorizer** | Linear SVM | **98.16%** | **97.39%** | 87.50% | 92.18% | **3 / 904** | 16 / 128 |
+| Pipeline Name | True Ham (TN) | False Alarm (FP) | Missed Spam (FN) | Blocked Spam (TP) | Specificity (TNR) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| TF-IDF + Multinomial NB | 899 | 5 | 15 | 113 | 99.45% |
+| **TF-IDF + Bernoulli NB [★ Champion]** | **903** | **1** | **14** | **114** | **99.89%** |
+| TF-IDF + Logistic Regression | 903 | 1 | 14 | 114 | 99.89% |
+| TF-IDF + Linear SVM | 898 | 6 | 12 | 116 | 99.34% |
+| CountVectorizer + Multinomial NB | 898 | 6 | 11 | 117 | 99.34% |
+| CountVectorizer + Bernoulli NB | 903 | 1 | 14 | 114 | 99.89% |
+| **CountVectorizer + Logistic Regression** | **904** | **0** | **12** | **116** | **100.00%** |
+| CountVectorizer + Linear SVM | 902 | 2 | 11 | 117 | 99.78% |
 
----
-
-## Best Performing Model
-
-Based on test results:
-- **Top Overall Classifier:** **Linear Support Vector Machine (Linear SVM) with TF-IDF** achieved the highest test accuracy (**98.16%**) and highest $F_1$-score (**92.24%**).
-- **Highest Precision (Lowest False Alarms):** **CountVectorizer + Linear SVM** (**97.39%**) and **Bernoulli Naive Bayes** (**97.37%**), registering only **3 false positives out of 904 legitimate messages** (99.67% specificity). In telecommunications filtering, minimizing false positives is paramount to ensure legitimate personal and banking messages are never improperly blocked.
+![8-Panel Confusion Matrix Grid](reports/figures/confusion_matrices_all8.png)
+*Figure: Complete 8-panel confusion matrix grid across all experimental pipelines.*
 
 ---
 
-## Comparison with IEEE Research
+## TF-IDF vs CountVectorizer Comparison
 
-This project benchmarks its methodology against the published IEEE TENCON 2023 paper:
+Comparing macro performance across feature representations:
+
+1. **Continuous Dampening vs. Discrete Counts:**  
+   Sublinear TF-IDF dampens high-frequency promotional vocabulary, stabilizing linear decision boundaries in Linear SVM and Logistic Regression. In contrast, CountVectorizer preserves raw integer counts, which aligns with Multinomial Naive Bayes' assumption of multinomial token generation.
+2. **Macro Feature Averages ($N=4$ Classifiers each):**
+   - **TF-IDF Mean Accuracy:** 98.36% | **TF-IDF Mean $F_1$:** 93.08% | **TF-IDF Mean False Positives:** 3.25
+   - **CountVectorizer Mean Accuracy:** 98.62% | **CountVectorizer Mean $F_1$:** 94.22% | **CountVectorizer Mean False Positives:** 2.25
+3. **Binarization Convergence:**  
+   Bernoulli Naive Bayes proves indifferent to vectorizer selection because binary conversion strips magnitude, yielding 98.55% accuracy and 1 FP under both representations.
+
+![Feature Extraction Comparison](reports/figures/feature_extraction_comparison.png)
+*Figure: Macro comparison between Sublinear TF-IDF and CountVectorizer across all evaluation metrics.*
+
+---
+
+## IEEE TENCON 2023 Comparison
+
+We benchmarked our experimental methodology against the reference academic paper:
 > **A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)**  
-> *Authors:* Robert G. de Luna et al., Polytechnic University of the Philippines (IEEE TENCON 2023, Chiang Mai, Thailand).
+> *Authors:* Robert G. de Luna, Karina L. Enriquez, Aira Mae Española, Mateo Ramos, Verna C. Magnaye, Dexter Astorga, Brian Allen Lanting, Jenjazel Redondo, Rose Anne L. Reaño, Trisha Celestial, Danielle Mugar.  
+> *Conference:* **2023 IEEE Region 10 Conference (TENCON)**, Chiang Mai, Thailand, pp. 52–57.  
+> *Publisher:* IEEE | ISBN: `979-8-3503-0219-6/23/$31.00 ©2023 IEEE`.
 
-The IEEE study evaluated eleven classification algorithms using a combination of UCI and additional regional SMS datasets, undersampled ham messages to force an approximate 60:40 partition, and selected CountVectorizer as its final feature extraction technique.
-
-### Published Benchmarks from Table VII of de Luna et al.:
-- **Bernoulli Naive Bayes (BNB):** 96.6333% Accuracy | 98.4431% Precision | 95.5174% Recall | 92.7835% $F_1$
-- **Random Forest Classifier (RFC):** 96.0297% Accuracy | 98.5228% Precision | 94.8699% Recall | 91.1408% $F_1$ *(Note: 96.03% belongs to Random Forest, NOT Multinomial Naive Bayes)*
+### Verified Published Metrics (Table VII in de Luna et al.):
+The authors screened 11 algorithms with default parameters using CountVectorizer (Table VI) and performed GridSearchCV on the top four:
+- **Bernoulli Naive Bayes (BNB):** 96.6333% Accuracy | 98.4431% Precision | 95.5174% Recall | 92.7835% $F_1$ (*Proposed Model in paper*)
+- **Random Forest Classifier (RFC):** 96.0297% Accuracy | 98.5228% Precision | 94.8699% Recall | 91.1408% $F_1$  
+  *(Authoritative Correction: `96.0297%` belongs strictly to Random Forest, NOT Multinomial Naive Bayes)*
 - **Logistic Regression (LR):** 95.8709% Accuracy | 98.7711% Precision | 93.7399% Recall | 89.2555% $F_1$
 - **Extra Trees Classifier (ETC):** 95.8070% Accuracy | 98.4885% Precision | 94.3495% Recall | 90.5663% $F_1$
+- **Support Vector Classifier (SVC):** 94.5684% *(Default parameter CV in Table VI; omitted from Table VII)*
 
-### Key Methodological Differences:
+### Side-by-Side Comparison of Overlapping Classifiers:
+| Algorithm Architecture | Feature Extraction | IEEE TENCON 2023 (Table VII) | Our Study Test Result ($N=1,032$) | Methodological Context |
+| :--- | :--- | :---: | :---: | :--- |
+| **Bernoulli Naive Bayes** | CountVectorizer | Acc: 96.63% \| Prec: 98.44%<br>Rec: 95.52% \| $F_1$: 92.78% | Acc: 98.55% \| Prec: 99.13%<br>Rec: 89.06% \| $F_1$: 93.83% | High precision (>98%) in both studies. |
+| **Bernoulli Naive Bayes** | Sublinear TF-IDF | *Not evaluated in Table VII* | **Acc: 98.55% \| Prec: 99.13%<br>Rec: 89.06% \| $F_1$: 93.83% [★ Champion]** | **Validation Champion:** 1 FP out of 904. |
+| **Logistic Regression** | CountVectorizer | Acc: 95.87% \| Prec: 98.77%<br>Rec: 93.74% \| $F_1$: 89.26% | Acc: 98.84% \| Prec: 100.00%<br>Rec: 90.62% \| $F_1$: 95.08% | Peak test score (0 FP out of 904). |
+| **Logistic Regression** | Sublinear TF-IDF | *Not evaluated in Table VII* | Acc: 98.55% \| Prec: 99.13%<br>Rec: 89.06% \| $F_1$: 93.83% | Consistent generalization across representations. |
+| **Linear SVM** | CountVectorizer | Acc: 94.57% *(Default CV in Table VI)* | Acc: 98.74% \| Prec: 98.32%<br>Rec: 91.41% \| $F_1$: 94.74% | Tuning penalty $C$ yielded substantial gain. |
+| **Linear SVM** | Sublinear TF-IDF | *Not evaluated in paper* | Acc: 98.26% \| Prec: 95.08%<br>Rec: 90.62% \| $F_1$: 92.80% | Platt calibrated posterior threat outputs. |
 
-| Aspect | This Project | IEEE TENCON 2023 Study |
-|:---|:---|:---|
-| **Dataset** | Authentic UCI SMS Spam Collection | Merged datasets (UCI + Philippine + Student SMS) |
-| **Class Distribution** | Authentic natural distribution (87.56% : 12.44%) | Artificially balanced (~60:40) via ham undersampling |
-| **Feature Extraction** | Full Factorial (TF-IDF vs. CountVectorizer) | CountVectorizer |
-| **Algorithms Evaluated** | 4 classical models ($2 \times 4$ combinations) | 11 classifiers |
-| **Top Performing Model** | Linear SVM (TF-IDF) | Bernoulli Naive Bayes |
-| **Top Model Accuracy** | **98.16%** | **96.6333%** |
+### Critical Methodological Distinctions & Academic Disclaimer:
+1. **Class Distribution & Recall Discrepancy:**  
+   The IEEE study reported higher recall for BNB (95.52% vs. 89.06%). This is a direct mathematical consequence of their **artificial 60:40 Ham-to-Spam undersampling** (1,930 ham, 1,218 spam). When spam is artificially elevated to 40% of the corpus (>3x natural density), classifiers operate with lower decision thresholds, naturally yielding higher recall.
+2. **Why Higher Accuracy Does NOT Prove Superiority:**  
+   Our project observed higher test accuracy across overlapping models (98.55% vs. 96.63% for BNB; 98.84% vs. 95.87% for LR). However, **it would be academically dishonest to claim our models are superior based on accuracy alone**:
+   - On our authentic 87.56% Ham distribution, a dummy classifier predicting "Ham" for every text automatically achieves **87.56% baseline accuracy**. On a 60:40 balanced dataset, that baseline is only **60.0%**.
+   - Therefore, the higher raw percentage in our study is largely an artifact of natural majority class prevalence combined with enhanced semantic preprocessing (`urltoken`, `currencytoken`, negation preservation).
+3. **Controlled Equivalence Disclaimer:**  
+   Because the training corpora (Philippine local messages + student messages vs. UCI SMS repository), class balancing techniques, and feature matrices differ, this comparison represents an **external benchmark validation**, not a direct controlled ablation study.
 
-*Important Academic Note:* The experiments use different regional datasets, class distributions, and feature extraction techniques. Therefore, reported accuracy values should be viewed as external benchmark validations rather than a direct controlled comparison under identical conditions.
+![IEEE vs Our Comparison](reports/figures/paper_vs_our_comparison.png)
+*Figure: Side-by-side comparison of Accuracy and F1-Score between IEEE TENCON 2023 and our factorial study.*
 
 ---
 
-## Live Application
+## Streamlit Demo Instructions
 
-The project includes an interactive web workstation built with Streamlit titled **SIGNAL — SMS Intelligence Lab**:
+The interactive telecommunications security workstation can be launched with a single command:
 
-- **Real-Time SMS Analysis:** Enter custom or preset SMS text and receive immediate classification (**SPAM DETECTED** vs. **SAFE HAM**).
-- **Interactive Model & Vectorizer Selection:** Toggle between TF-IDF and CountVectorizer across all 4 machine learning models.
-- **Model Performance Dashboard:** Interactive 8-combination performance matrix and high-resolution comparison charts.
-- **Dataset Explorer:** Corpus diagnostics, class distribution histograms, and sample data viewer.
-- **Research Comparison:** Direct benchmark comparison and divergence analysis against IEEE TENCON 2023.
-
----
-
-## Project Structure
-
-```text
-sms-spam-detection/
-│
-├── .streamlit/
-│   └── config.toml                     # High-contrast light workstation theme configuration
-│
-├── data/
-│   └── README.md                       # Dataset provenance and download guide
-│
-├── notebooks/
-│   └── sms_spam_detection.ipynb        # End-to-end reproducible research notebook
-│
-├── src/
-│   ├── data_loader.py                  # Dataset downloading, loading, and deduplication
-│   ├── preprocessing.py                # NLP pipeline (stemming, tokenization, stopword removal)
-│   ├── feature_extraction.py           # Dual vectorizers (TF-IDF vs Count) & binary support
-│   ├── model_training.py               # 8 ML pipeline definitions and 5-fold CV grid search
-│   ├── evaluation.py                   # Multi-metric evaluation, confusion matrices, and charts
-│   ├── paper_comparison.py             # IEEE TENCON 2023 comparative analysis script
-│   ├── generate_pdf.py                 # Academic publication PDF report generator
-│   └── create_notebook.py              # Notebook generation utility
-│
-├── reports/
-│   ├── research_report.md              # Formal 18-section academic research report
-│   ├── research_comparison.md          # Detailed IEEE paper comparison report
-│   ├── sms_spam_detection_report.pdf   # Publication-ready compiled PDF report
-│   ├── results/
-│   │   ├── results_summary.csv         # Machine-readable evaluation table
-│   │   └── results_summary.json        # Machine-readable evaluation JSON
-│   └── figures/
-│       ├── class_distribution.png
-│       ├── message_length_distribution.png
-│       ├── accuracy_comparison.png
-│       ├── precision_comparison.png
-│       ├── recall_comparison.png
-│       ├── f1_comparison.png
-│       ├── feature_extraction_comparison.png
-│       ├── confusion_matrices_all8.png
-│       └── paper_vs_our_comparison.png
-│
-├── app.py                              # SIGNAL: SMS Intelligence Lab (Streamlit Workstation)
-├── requirements.txt                    # Project environment dependencies
-├── README.md                           # Main research documentation
-├── LICENSE                             # MIT License
-└── .gitignore                          # Clean repository version control ignore rules
+```bash
+streamlit run app.py
 ```
 
+### Module-by-Module Walkthrough:
+
+1. **Message Analyzer (`Primary Workspace`):**
+   - Real-time SMS classification with immediate threat assessment (**SPAM DETECTED** vs. **PREDICTED HAM**).
+   - Interactive dropdowns to toggle between both feature extractors and all four ML models.
+   - Preset realistic test cases: Banking urgent smishing, lottery cash claim, legitimate peer meeting, institutional circular.
+   - Preprocessing inspection drawer displaying exact regex token transformations and negation preservation.
+   - Live inference latency benchmarking (measured in milliseconds at runtime).
+   - Calibrated posterior probabilities using Platt scaling.
+2. **Model Performance (`Empirical Metrics`):**
+   - Dynamic metric cards displaying peak accuracy, precision, recall, and $F_1$-score loaded directly from `results_summary.csv`.
+   - Interactive 8-combination performance table with validation status badges.
+   - High-resolution comparison visualizations (Accuracy, Precision, Recall, $F_1$, Macro Comparison, and 8-panel Confusion Matrix Grid).
+3. **Dataset Explorer (`Corpus Diagnostics`):**
+   - Complete UCI SMS Spam Collection audit statistics (5,160 clean unique messages).
+   - Class distribution histograms and character/word length distributions.
+   - Comprehensive morphological statistics table (Mean, Std, Median, IQR, Min, Max).
+4. **Research Comparison (`Benchmark Validation`):**
+   - Side-by-side comparison matrix with IEEE TENCON 2023 published results.
+   - Methodological variance analysis explaining the mathematical impact of class balancing on recall.
+   - Academic disclaimer clarifying baseline accuracy differentials.
+5. **About Project (`Academic Specifications`):**
+   - Complete institutional academic profile (Research Methodologies - 7th Sem B.Tech CSE).
+   - Research objectives and abstract.
+   - Live technology stack listing installed runtime versions of Python, Scikit-learn, NLTK, Pandas, and Streamlit.
+   - Formal IEEE bibliographic references.
+
 ---
 
-## Installation and Setup
+## Installation Instructions
+
+Follow these step-by-step instructions to set up the project from a clean environment:
 
 ### 1. Clone the repository
 ```bash
@@ -263,11 +375,11 @@ cd sms-spam-detection
 
 ### 2. Create and activate a virtual environment
 ```bash
-# Windows
+# On Windows (Command Prompt / PowerShell):
 python -m venv venv
 venv\Scripts\activate
 
-# Linux / macOS
+# On Linux / macOS:
 python3 -m venv venv
 source venv/bin/activate
 ```
@@ -277,13 +389,28 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run the full evaluation pipeline
+### 4. Run the dataset & preprocessing audit
+```bash
+python src/dataset_and_preprocessing_audit.py
+```
+
+### 5. Train all 8 ML pipelines and select champion
+```bash
+python src/model_training.py
+```
+
+### 6. Run comprehensive evaluation and generate figures
 ```bash
 python src/evaluation.py
 python src/paper_comparison.py
 ```
 
-### 5. Launch the Streamlit application
+### 7. Compile the academic research PDF report
+```bash
+python src/generate_pdf.py
+```
+
+### 8. Launch the Streamlit application
 ```bash
 streamlit run app.py
 ```
@@ -291,50 +418,134 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## Technologies Used
+## Project Structure
 
-- **Language:** Python 3.10+
-- **Machine Learning:** Scikit-learn (Pipelines, GridSearchCV, SVC with Linear Kernel & Platt Scaling, Naive Bayes, Logistic Regression)
-- **Natural Language Processing:** NLTK (Tokenization, English Stopwords, Porter Stemmer)
-- **Data Manipulation:** Pandas, NumPy
-- **Visualizations:** Matplotlib, Seaborn
-- **Web Application:** Streamlit
-- **Development & Research:** Jupyter Notebook, Google Colab, Git & GitHub
+```text
+sms-spam-detection/
+│
+├── .streamlit/
+│   └── config.toml                     # Editorial Swiss light workstation theme styling
+│
+├── data/
+│   ├── SMSSpamCollection               # Raw UCI SMS Spam Collection corpus (ID: 228)
+│   ├── readme                          # Official UCI dataset documentation
+│   └── README.md                       # Data provenance and license information
+│
+├── models/
+│   ├── best_model.pkl                  # Persisted validation champion (TF-IDF + Bernoulli NB)
+│   ├── selected_model_metadata.json    # Champion selection audit trail and optimal hyperparameters
+│   ├── tfidf_plus_bernoulli_naive_bayes.pkl
+│   ├── tfidf_plus_multinomial_naive_bayes.pkl
+│   ├── tfidf_plus_logistic_regression.pkl
+│   ├── tfidf_plus_linear_svm.pkl
+│   ├── countvectorizer_plus_bernoulli_naive_bayes.pkl
+│   ├── countvectorizer_plus_multinomial_naive_bayes.pkl
+│   ├── countvectorizer_plus_logistic_regression.pkl
+│   └── countvectorizer_plus_linear_svm.pkl
+│
+├── notebooks/
+│   └── sms_spam_detection.ipynb        # End-to-end reproducible research notebook
+│
+├── reports/
+│   ├── research_report.md              # Comprehensive 12-section academic research report
+│   ├── research_comparison.md          # Authoritative IEEE TENCON 2023 comparative analysis
+│   ├── dataset_audit_report.md         # Detailed dataset integrity & preprocessing audit report
+│   ├── sms_spam_detection_report.pdf   # Publication-ready compiled PDF report
+│   ├── results/
+│   │   ├── results_summary.csv         # Complete 8-pipeline test evaluation metrics
+│   │   ├── results_summary.json        # Machine-readable evaluation metrics
+│   │   ├── cv_results_summary.csv      # Stratified 5-fold CV training selection metrics
+│   │   ├── cv_results_summary.json     # Machine-readable CV results
+│   │   ├── dataset_audit_metrics.json  # Exact verified dataset & morphological statistics
+│   │   └── preprocessing_ablation_results.csv # 5-regime preprocessing ablation metrics
+│   └── figures/
+│       ├── app_screenshot.png          # High-resolution screenshot of SIGNAL workstation
+│       ├── class_distribution.png      # Class imbalance visualization
+│       ├── message_length_distribution.png # Character and word count distributions
+│       ├── accuracy_comparison.png     # Test accuracy bar chart across 8 pipelines
+│       ├── precision_comparison.png    # Test precision bar chart across 8 pipelines
+│       ├── recall_comparison.png       # Test recall bar chart across 8 pipelines
+│       ├── f1_comparison.png           # Test F1-score bar chart across 8 pipelines
+│       ├── feature_extraction_comparison.png # Macro TF-IDF vs CountVectorizer comparison
+│       ├── confusion_matrices_all8.png # 8-panel confusion matrix visual grid
+│       ├── preprocessing_ablation_comparison.png # Preprocessing ablation bar chart
+│       └── paper_vs_our_comparison.png # Publication comparison chart vs IEEE TENCON 2023
+│
+├── src/
+│   ├── __init__.py                     # Package initialization
+│   ├── data_loader.py                  # Ingestion, cleaning, and conflicting-label auditing
+│   ├── preprocessing.py                # Regex token substitution & negation preservation
+│   ├── feature_extraction.py           # Sublinear TF-IDF, CountVectorizer, & binary transformer
+│   ├── model_training.py               # 8 ML pipelines & 5-fold CV GridSearchCV selection
+│   ├── evaluation.py                   # Multi-metric evaluation and visual chart generation
+│   ├── dataset_and_preprocessing_audit.py # Dataset integrity audit & 5-regime ablation
+│   ├── paper_comparison.py             # IEEE TENCON 2023 benchmark & figure generation
+│   ├── generate_pdf.py                 # Academic publication PDF report compiler
+│   └── create_notebook.py              # Reproducible research notebook generator
+│
+├── app.py                              # SIGNAL: SMS Intelligence Lab (Streamlit Workstation)
+├── requirements.txt                    # Verified minimum library dependencies
+├── README.md                           # Master academic research documentation
+├── LICENSE                             # MIT Open Source License
+└── .gitignore                          # Git version control ignore rules
+```
+
+---
+
+## Technology Stack
+
+The project relies on standard open-source Python scientific computing and machine learning libraries:
+
+| Component | Library / Framework | Minimum Version | Verified Runtime Version | Purpose in Research |
+| :--- | :--- | :---: | :---: | :--- |
+| **Runtime** | Python | `>=3.10.0` | `3.14.0` | Core language environment. |
+| **Machine Learning** | Scikit-learn | `>=1.3.0` | `1.9.0` | Model pipelines, GridSearchCV, estimators, metrics. |
+| **NLP & Text** | NLTK | `>=3.8.0` | `3.10.4` | English stopwords corpus, Porter stemmer. |
+| **Data Processing** | Pandas | `>=2.0.0` | `3.0.3` | Tabular data manipulation, corpus cleaning, metrics I/O. |
+| **Numerical Math** | NumPy | `>=1.24.0` | `2.4.6` | Vectorized matrix operations, probability distributions. |
+| **Web Application** | Streamlit | `>=1.28.0` | `1.61.1` | Interactive SIGNAL telecommunications workstation UI. |
+| **Visualization** | Matplotlib | `>=3.7.0` | `3.11.1` | High-resolution publication figure rendering. |
+| **Statistical Viz** | Seaborn | `>=0.12.0` | `0.13.2` | Confusion matrix heatmaps, categorical bar charts. |
+| **Model Persistence** | Joblib | `>=1.3.0` | `1.5.3` | Serialization and deserialization of trained pipeline objects. |
+| **Document Compiler**| FPDF2 | `>=2.7.0` | `2.8.7` | Compilation of academic publication research PDF report. |
 
 ---
 
 ## Limitations
 
-1. **Monolingual Focus:** The experiment utilizes a single publicly available English SMS corpus; performance on multilingual or code-mixed text (e.g., Hinglish) may require specialized language models.
-2. **Contextual Nuances:** Traditional linear and probabilistic models operate on n-gram token statistics and do not capture deeper contextual semantics like modern transformers.
-3. **Adversarial Tactics:** Real-world spammers may use character substitution (homoglyphs, leetspeak, zero-width spaces) which can bypass basic whitespace tokenizers.
+1. **Monolingual English Corpus:** The evaluation is conducted on the UCI SMS Spam Collection, which consists predominantly of British and American English. Dialectal variations, regional slang, and code-mixed communications (e.g., Hinglish) may require domain-specific fine-tuning.
+2. **Contextual Syntactic Nuances:** Traditional n-gram representations (unigrams and bigrams) do not capture long-range contextual semantic dependencies as effectively as transformer-based attention models.
+3. **Adversarial Obfuscation:** Spammers frequently employ evasion tactics such as zero-width spaces, character homoglyphs (e.g., Cyrillic 'а' replacing Latin 'a'), or image-based texts that bypass standard character tokenizers.
+4. **Telecommunication Signaling Absence:** The classification relies solely on message payload text; carrier-level metadata such as SMS center (SMSC) timestamps, sender spoofing heuristics, and burst velocity are not available in static public corpora.
 
 ---
 
-## Future Scope
+## Future Improvements
 
-1. **Lightweight Transformers:** Benchmark DistilBERT and MobileBERT against Linear SVM to assess inference latency versus accuracy on mobile edge devices.
-2. **Adversarial Hardening:** Incorporate character-level embeddings to identify character obfuscation and evasion tactics.
-3. **Multi-Dialect & Code-Mixed Datasets:** Expand evaluation to include SMS datasets from diverse regional telecommunications markets.
+1. **Edge-Optimized Transformer Benchmarking:** Fine-tune and evaluate lightweight pretrained language models (DistilBERT, MobileBERT, TinyBERT) to benchmark latency-versus-accuracy trade-offs against Linear SVM on edge devices.
+2. **Adversarial Defense Hardening:** Integrate character-level embeddings and Unicode normalization to detect homoglyph spoofing and leetspeak evasion.
+3. **Multilingual and Regional Corpus Expansion:** Expand evaluation to include multilingual and Indic SMS datasets reflecting contemporary smishing attacks in developing mobile markets.
+4. **Containerized Production API:** Package the trained inference pipeline as a high-performance REST microservice using FastAPI and Docker for telecom carrier integration.
 
 ---
 
 ## References
 
-1. Robert G. de Luna et al., "A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)," in *Proc. 2023 IEEE Region 10 Conference (TENCON)*, Chiang Mai, Thailand, 2023, pp. 52–57.
-2. T. A. Almeida, J. M. G. Hidalgo, and A. Yamakami, "Contributions to the study of SMS spam filtering: new collection and results," in *Proc. 11th ACM Symposium on Document Engineering (DocEng)*, 2011, pp. 259–262.
-3. UCI Machine Learning Repository, *SMS Spam Collection Dataset*, ID: 228. Available: [https://archive.ics.uci.edu/dataset/228/sms+spam+collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
-4. F. Pedregosa et al., "Scikit-learn: Machine Learning in Python," *Journal of Machine Learning Research*, vol. 12, pp. 2825–2830, 2011.
+1. **R. G. de Luna, K. L. Enriquez, A. M. Española, M. Ramos, V. C. Magnaye, D. Astorga, B. A. Lanting, J. Redondo, R. A. L. Reaño, T. Celestial, and D. Mugar**, "A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)," in *Proc. 2023 IEEE Region 10 Conference (TENCON)*, Chiang Mai, Thailand, 2023, pp. 52–57, ISBN: 979-8-3503-0219-6/23/$31.00 ©2023 IEEE.
+2. **T. A. Almeida, J. M. G. Hidalgo, and A. Yamakami**, "Contributions to the study of SMS spam filtering: new collection and results," in *Proc. 11th ACM Symposium on Document Engineering (DocEng)*, 2011, pp. 259–262.
+3. **UCI Machine Learning Repository**, *SMS Spam Collection Dataset*, Dataset ID: 228. Available: [https://archive.ics.uci.edu/dataset/228/sms+spam+collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
+4. **F. Pedregosa, G. Varoquaux, A. Gramfort, et al.**, "Scikit-learn: Machine Learning in Python," *Journal of Machine Learning Research*, vol. 12, pp. 2825–2830, 2011.
+5. **N. Krishnaveni and V. Radha**, "Comparison of Naïve Bayes and SVM Classifier for Detection of Spam SMS using Natural Language Processing," *Int. J. Semantic Comput.*, vol. 11, no. 2, pp. 2260–2265, 2021.
+6. **N. Kudupudi and S. Nair**, "Spam message detection using logistic regression," *Int. J. Adv. Comput. Sci. Appl.*, vol. 9, no. 9, pp. 815–818, 2021.
 
 ---
 
-## License
+## Author Information
 
-This project is open-source and distributed under the terms of the **[MIT License](LICENSE)**.
-
----
-
-## Author
-
-**Priyansu Das**    
-GitHub: [@priyansudas07](https://github.com/priyansudas07)
+- **Author:** Priyansu Das  
+- **Degree:** Bachelor of Technology (B.Tech) in Computer Science and Engineering  
+- **Semester:** 7th Semester  
+- **Academic Subject:** Research Methodologies (RM)  
+- **Institution:** Siksha 'O' Anusandhan University (ITER), Bhubaneswar, Odisha, India  
+- **GitHub:** [@priyansudas07](https://github.com/priyansudas07)  
+- **Repository:** [https://github.com/priyansudas07/sms-spam-detection](https://github.com/priyansudas07/sms-spam-detection)
