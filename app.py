@@ -1,7 +1,8 @@
 """
 SIGNAL: SMS INTELLIGENCE LAB
-SMS Spam Detection & Factorial Machine Learning Workstation
-Subject: Research Methodologies (RM) - 7th Sem B.Tech CSE
+SMS Spam Detection & Comparative Machine Learning Workstation
+Academic Project | Subject: Research Methodologies (RM) - 7th Sem B.Tech CSE
+Author: Priyansu Das | Siksha 'O' Anusandhan University (ITER)
 """
 
 import os
@@ -9,11 +10,17 @@ import sys
 import time
 import json
 import joblib
+import platform
+import numpy as np
 import pandas as pd
 import streamlit as st
 
 # Ensure src modules are resolvable
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+SRC_DIR = os.path.join(PROJECT_ROOT, "src")
+if SRC_DIR not in sys.path:
+    sys.path.append(SRC_DIR)
+
 from preprocessing import preprocess_text
 from feature_extraction import TextPreprocessorTransformer  # noqa: F401
 
@@ -48,34 +55,6 @@ st.markdown("""
         font-weight: 700 !important;
         color: #17232D !important;
         letter-spacing: -0.02em !important;
-    }
-
-    /* Top Application Header */
-    .signal-header {
-        background: #FFFFFF;
-        border-bottom: 1px solid #D9DFE1;
-        padding: 16px 28px;
-        margin: -4rem -4rem 1.5rem -4rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .signal-header-title {
-        font-family: 'Manrope', sans-serif;
-        font-weight: 800;
-        font-size: 1.25rem;
-        color: #17232D;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .signal-header-meta {
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.75rem;
-        color: #68747B;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
     }
 
     /* Sidebar Styling */
@@ -120,7 +99,7 @@ st.markdown("""
     }
     .metric-panel-value {
         font-family: 'Manrope', sans-serif;
-        font-size: 1.75rem;
+        font-size: 1.70rem;
         font-weight: 800;
         color: #17232D;
         letter-spacing: -0.03em;
@@ -196,13 +175,7 @@ st.markdown("""
         border: 1px solid #D9DFE1;
     }
 
-    /* Data table header styling */
-    .dataframe {
-        font-size: 0.85rem !important;
-        border: 1px solid #D9DFE1 !important;
-    }
-
-    /* Form & Selectbox Styling (BaseWeb, ARIA & Streamlit Overrides to guarantee 100% High Contrast) */
+    /* Form & Selectbox Styling (High Contrast Guaranteed) */
     div[data-testid="stSelectbox"],
     div[data-testid="stSelectbox"] > div,
     div[data-testid="stSelectbox"] > div > div,
@@ -226,7 +199,6 @@ st.markdown("""
         fill: #17232D !important;
         background: transparent !important;
     }
-    /* Popovers, menus and options (BaseWeb + ARIA role-based) */
     div[data-baseweb="popover"],
     div[data-baseweb="popover"] > div,
     ul[data-baseweb="menu"],
@@ -311,14 +283,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# --- Data and Model Persistence Loaders ---
+# --- Model and Result Persistence Loaders ---
 MODEL_FILES = {
-    ("TF-IDF", "Linear Support Vector Machine"): "tfidf_plus_linear_svm.pkl",
     ("TF-IDF", "Bernoulli Naive Bayes"): "tfidf_plus_bernoulli_naive_bayes.pkl",
+    ("TF-IDF", "Linear Support Vector Machine"): "tfidf_plus_linear_svm.pkl",
     ("TF-IDF", "Logistic Regression"): "tfidf_plus_logistic_regression.pkl",
     ("TF-IDF", "Multinomial Naive Bayes"): "tfidf_plus_multinomial_naive_bayes.pkl",
-    ("CountVectorizer", "Linear Support Vector Machine"): "countvectorizer_plus_linear_svm.pkl",
     ("CountVectorizer", "Bernoulli Naive Bayes"): "countvectorizer_plus_bernoulli_naive_bayes.pkl",
+    ("CountVectorizer", "Linear Support Vector Machine"): "countvectorizer_plus_linear_svm.pkl",
     ("CountVectorizer", "Logistic Regression"): "countvectorizer_plus_logistic_regression.pkl",
     ("CountVectorizer", "Multinomial Naive Bayes"): "countvectorizer_plus_multinomial_naive_bayes.pkl",
 }
@@ -326,21 +298,70 @@ MODEL_FILES = {
 
 @st.cache_resource
 def load_pipeline(feature_tech: str, algorithm_name: str):
-    filename = MODEL_FILES.get((feature_tech, algorithm_name), "best_model.pkl")
-    path = os.path.join(os.path.dirname(__file__), "models", filename)
-    if os.path.exists(path):
-        return joblib.load(path)
-    fallback = os.path.join(os.path.dirname(__file__), "models", "best_model.pkl")
-    if os.path.exists(fallback):
-        return joblib.load(fallback)
-    raise FileNotFoundError("Trained pipeline models not found. Please run src/evaluation.py first.")
+    """
+    Loads the exact trained model pipeline. Never silently defaults to another model.
+    Raises FileNotFoundError if the specific model artifact is missing.
+    """
+    key = (feature_tech, algorithm_name)
+    if key not in MODEL_FILES:
+        raise ValueError(f"Unknown combination: {feature_tech} + {algorithm_name}")
+
+    filename = MODEL_FILES[key]
+    path = os.path.join(PROJECT_ROOT, "models", filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Requested pipeline file '{filename}' for '{feature_tech} + {algorithm_name}' "
+            f"does not exist at {path}. Please run 'src/evaluation.py' to generate all model artifacts."
+        )
+    return joblib.load(path)
+
+
+@st.cache_resource
+def load_all_8_pipelines():
+    """
+    Loads all 8 pipelines for the multi-model consensus evaluation.
+    """
+    pipelines = {}
+    for (feat, algo), filename in MODEL_FILES.items():
+        path = os.path.join(PROJECT_ROOT, "models", filename)
+        if os.path.exists(path):
+            pipelines[(feat, algo)] = joblib.load(path)
+        else:
+            raise FileNotFoundError(f"Missing pipeline artifact: {filename}. Run src/evaluation.py first.")
+    return pipelines
 
 
 @st.cache_data
 def load_evaluation_metrics():
-    csv_path = os.path.join(os.path.dirname(__file__), "reports", "results", "results_summary.csv")
+    csv_path = os.path.join(PROJECT_ROOT, "reports", "results", "results_summary.csv")
     if os.path.exists(csv_path):
         return pd.read_csv(csv_path)
+    return None
+
+
+@st.cache_data
+def load_cv_metrics():
+    csv_path = os.path.join(PROJECT_ROOT, "reports", "results", "cv_results_summary.csv")
+    if os.path.exists(csv_path):
+        return pd.read_csv(csv_path)
+    return None
+
+
+@st.cache_data
+def load_selected_model_metadata():
+    json_path = os.path.join(PROJECT_ROOT, "models", "selected_model_metadata.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+
+@st.cache_data
+def load_dataset_audit_metrics():
+    json_path = os.path.join(PROJECT_ROOT, "reports", "results", "dataset_audit_metrics.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            return json.load(f)
     return None
 
 
@@ -352,18 +373,18 @@ def load_corpus_sample(n=10):
     return clean.head(n)
 
 
-# --- Sidebar Navigation & Brand Shell ---
+# --- Sidebar Navigation & Telemetry ---
 with st.sidebar:
     st.markdown("""
     <div style="padding: 10px 0 20px 0; border-bottom: 1px solid #D9DFE1; margin-bottom: 20px;">
         <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #E66B36; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;">
-            TELECOM SECURITY LAB
+            RESEARCH WORKSTATION
         </div>
         <div style="font-family: 'Manrope', sans-serif; font-size: 1.5rem; font-weight: 800; color: #17232D; letter-spacing: -0.03em;">
             SIGNAL
         </div>
         <div style="font-family: 'Inter', sans-serif; font-size: 0.80rem; color: #68747B; margin-top: 2px;">
-            SMS Intelligence & Spam Detection Workstation
+            SMS Intelligence & Machine Learning Lab
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -383,15 +404,15 @@ with st.sidebar:
 
     st.markdown("<br><hr style='border: none; border-top: 1px solid #D9DFE1; margin: 20px 0;'>", unsafe_allow_html=True)
 
-    # Bottom Telemetry Panel
+    # Telemetry Panel
     st.markdown("""
     <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #68747B; line-height: 1.8;">
         <div><strong>CORPUS:</strong> UCI SMS SPAM (N=5,160)</div>
-        <div><strong>SPLIT:</strong> STRATIFIED 80:20</div>
-        <div><strong>LATENCY:</strong> &le; 12 MS (LINEAR SVM)</div>
-        <div><strong>PIPELINES:</strong> 8 REPRODUCIBLE MODELS</div>
-        <div><strong>STATUS:</strong> <span style="color: #27866B; font-weight: 600;">ACTIVE / READY</span></div>
-        <div style="margin-top: 8px; color: #94a3b8;">BUILD: v2.4-RM-ENG</div>
+        <div><strong>TRAIN/TEST:</strong> 80:20 (4,128 / 1,032)</div>
+        <div><strong>CV PROTOCOL:</strong> STRATIFIED 5-FOLD</div>
+        <div><strong>PIPELINES:</strong> 8 TRAINED MODELS</div>
+        <div><strong>CHAMPION:</strong> TF-IDF + BERNOULLI NB</div>
+        <div style="margin-top: 8px; color: #94a3b8;">SYSTEM STATUS: ONLINE</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -400,7 +421,6 @@ with st.sidebar:
 # PAGE 1: MESSAGE ANALYZER
 # ==============================================================================
 if nav_selection == "Message Analyzer":
-    # Header Bar
     st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; border-bottom: 1px solid #D9DFE1; margin-bottom: 24px;">
         <div>
@@ -414,7 +434,7 @@ if nav_selection == "Message Analyzer":
         </div>
         <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #68747B;">
             WORKSTATION ONLINE<br>
-            <span style="color: #27866B; font-weight: 600;">● ZERO DATA LEAKAGE</span>
+            <span style="color: #27866B; font-weight: 600;">● ZERO TEST LEAKAGE</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -422,33 +442,33 @@ if nav_selection == "Message Analyzer":
     col_input, col_output = st.columns([1.1, 0.9], gap="large")
 
     with col_input:
-        st.markdown("### Analyse an SMS")
+        st.markdown("### Input Message")
         st.markdown("<p style='font-size: 0.88rem; color: #68747B; margin-top: -8px;'>Configure model pipeline, insert SMS text, and execute classification.</p>", unsafe_allow_html=True)
 
-        # Pipeline Configuration Bar
+        # Pipeline Configuration Selectboxes
         c_pipe1, c_pipe2 = st.columns(2)
         with c_pipe1:
             feature_choice = st.selectbox(
                 "Feature Extraction",
-                ["Auto-Adaptive (Both)", "TF-IDF", "CountVectorizer"],
+                ["TF-IDF", "CountVectorizer"],
                 index=0,
-                help="Auto-Adaptive evaluates both TF-IDF and CountVectorizer across all models. For single models, it defaults to TF-IDF unless explicitly specified."
+                help="Select between continuous TF-IDF term weights (sublinear scaling) or discrete Bag-of-Words frequency counts."
             )
         with c_pipe2:
             model_choice = st.selectbox(
                 "Classifier Model",
                 [
-                    "⚡ Auto-Consensus Ensemble (Multi-Model Defense)",
-                    "Linear Support Vector Machine",
                     "Bernoulli Naive Bayes",
+                    "Linear Support Vector Machine",
                     "Logistic Regression",
-                    "Multinomial Naive Bayes"
+                    "Multinomial Naive Bayes",
+                    "8-Model Majority Voting Ensemble (Evaluated)"
                 ],
                 index=0,
-                help="Auto-Consensus evaluates all 8 pipelines concurrently in real time and triggers threat defense if any model flags spam."
+                help="Select a specific trained classifier or the evaluated 8-pipeline majority voting consensus."
             )
 
-        # Preset Academic Samples
+        # Preset Academic Samples Catalog
         sample_catalog = {
             "-- Select sample or compose custom text --": "",
             "🚨 USPS Package Delivery Smishing": "USPS Notice: Your package could not be delivered today due to an incorrect house number. Please update your delivery address and pay the $1.99 redelivery fee at http://usps-tracking-portal-update.com within 12 hours.",
@@ -458,25 +478,31 @@ if nav_selection == "Message Analyzer":
             "✅ Academic Department Circular": "Dear Students, please submit your 7th Semester RM lab file by Friday 5 PM on the department portal."
         }
 
-        selected_sample_key = st.selectbox(
-            "Load Test Case",
-            list(sample_catalog.keys())
+        # Session State Setup
+        if "sms_text" not in st.session_state:
+            st.session_state["sms_text"] = ""
+
+        def load_sample():
+            choice = st.session_state.get("sample_dropdown")
+            if choice and sample_catalog.get(choice):
+                st.session_state["sms_text"] = sample_catalog[choice]
+
+        def clear_all():
+            st.session_state["sms_text"] = ""
+            st.session_state["sample_dropdown"] = list(sample_catalog.keys())[0]
+
+        st.selectbox(
+            "Load Sample Test Case",
+            list(sample_catalog.keys()),
+            key="sample_dropdown",
+            on_change=load_sample
         )
-        sample_text = sample_catalog[selected_sample_key]
-
-        # Session state for message input
-        if "user_text" not in st.session_state:
-            st.session_state["user_text"] = ""
-
-        if sample_text:
-            st.session_state["user_text"] = sample_text
 
         text_input = st.text_area(
             "SMS Message Text",
-            value=st.session_state["user_text"],
             placeholder="Type or paste SMS text here to inspect...",
             height=130,
-            key="sms_raw_input"
+            key="sms_text"
         )
 
         char_len = len(text_input)
@@ -491,13 +517,9 @@ if nav_selection == "Message Analyzer":
 
         btn_col1, btn_col2 = st.columns([2, 1])
         with btn_col1:
-            analyze_clicked = st.button("Analyze Message", type="primary", use_container_width=True)
+            analyze_clicked = st.button("Analyze Message", type="primary", width="stretch")
         with btn_col2:
-            clear_clicked = st.button("Clear", type="secondary", use_container_width=True)
-
-        if clear_clicked:
-            st.session_state["user_text"] = ""
-            st.rerun()
+            st.button("Clear", type="secondary", width="stretch", on_click=clear_all)
 
     with col_output:
         st.markdown("### Classification Verdict")
@@ -507,110 +529,116 @@ if nav_selection == "Message Analyzer":
             if not text_input.strip():
                 st.warning("Please enter an SMS text message to analyze.")
             else:
-                with st.spinner("Executing real-time multi-model intelligence inference..."):
+                with st.spinner("Executing model inference..."):
                     start_t = time.perf_counter()
                     cleaned_tokens = preprocess_text(text_input)
 
-                    # Run all 8 pipelines
-                    consensus_rows = []
-                    spam_votes = 0
-                    highest_spam_prob = 0.0
-                    triggering_models = []
+                    is_ensemble = "Majority Voting" in model_choice
+                    pred = 0
+                    probs = None
+                    latency_ms = 0.0
 
-                    for (feat, algo), filename in MODEL_FILES.items():
-                        p = load_pipeline(feat, algo)
-                        p_pred = p.predict([text_input])[0]
-                        p_prob = None
-                        if hasattr(p, "predict_proba"):
-                            try:
-                                p_prob = p.predict_proba([text_input])[0][1]
-                            except Exception:
-                                pass
-                        if p_prob is None:
-                            p_prob = 1.0 if p_pred == 1 else 0.0
+                    try:
+                        # Load all pipelines for consensus view
+                        all_pipes = load_all_8_pipelines()
+                        consensus_rows = []
+                        spam_votes = 0
+                        probs_list = []
 
-                        if p_pred == 1:
-                            spam_votes += 1
-                            triggering_models.append(f"{algo} ({feat})")
-                        if p_prob > highest_spam_prob:
-                            highest_spam_prob = p_prob
+                        for (feat, algo), pipe in all_pipes.items():
+                            p_pred = pipe.predict([text_input])[0]
+                            p_prob = None
+                            if hasattr(pipe, "predict_proba"):
+                                try:
+                                    p_prob = pipe.predict_proba([text_input])[0][1]
+                                except Exception:
+                                    pass
+                            if p_prob is None:
+                                p_prob = 1.0 if p_pred == 1 else 0.0
 
-                        consensus_rows.append({
-                            "Algorithm": algo,
-                            "Vectorizer": feat,
-                            "Verdict": "🚨 SPAM" if p_pred == 1 else "✅ SAFE",
-                            "Spam Probability": f"{p_prob*100:.1f}%"
-                        })
+                            probs_list.append(p_prob)
+                            if p_pred == 1:
+                                spam_votes += 1
 
-                    is_auto_ensemble = "Auto-Consensus" in model_choice
+                            consensus_rows.append({
+                                "Classifier": algo,
+                                "Feature Extraction": feat,
+                                "Predicted Class": "SPAM" if p_pred == 1 else "HAM",
+                                "Spam Probability": f"{p_prob*100:.1f}%"
+                            })
 
-                    if is_auto_ensemble:
-                        # Auto-defense: if any sensitive model flags threat, alert threat
-                        pred = 1 if spam_votes > 0 else 0
-                        probs = [1.0 - highest_spam_prob, highest_spam_prob]
-                        active_pipeline_name = "Ensemble"
-                        active_feat_name = "Auto-Adaptive"
-                    else:
-                        active_feat = feature_choice if feature_choice in ["TF-IDF", "CountVectorizer"] else "TF-IDF"
-                        pipeline = load_pipeline(active_feat, model_choice)
-                        pred = pipeline.predict([text_input])[0]
-                        probs = None
-                        if hasattr(pipeline, "predict_proba"):
-                            try:
-                                probs = pipeline.predict_proba([text_input])[0]
-                            except Exception:
-                                pass
-                        if probs is None:
-                            probs = [0.0, 1.0] if pred == 1 else [1.0, 0.0]
-                        active_pipeline_name = model_choice.split()[0]
-                        active_feat_name = active_feat
+                        if is_ensemble:
+                            # Evaluated Majority Voting: spam if >= 4 of 8 models predict spam
+                            pred = 1 if spam_votes >= 4 else 0
+                            # Validated ensemble probability: arithmetic mean of calibrated probabilities (NOT maximum)
+                            mean_prob = float(np.mean(probs_list))
+                            probs = [1.0 - mean_prob, mean_prob]
+                            active_clf_display = "8-Model Majority Voting Ensemble"
+                            active_feat_display = "Both (TF-IDF & CountVec)"
+                        else:
+                            # Single pipeline mode: load exact requested model
+                            active_pipe = load_pipeline(feature_choice, model_choice)
+                            pred = active_pipe.predict([text_input])[0]
+                            if hasattr(active_pipe, "predict_proba"):
+                                try:
+                                    probs = active_pipe.predict_proba([text_input])[0]
+                                except Exception:
+                                    pass
+                            if probs is None:
+                                probs = [0.0, 1.0] if pred == 1 else [1.0, 0.0]
 
-                    latency_ms = (time.perf_counter() - start_t) * 1000
+                            active_clf_display = model_choice
+                            active_feat_display = feature_choice
+
+                        latency_ms = (time.perf_counter() - start_t) * 1000
+
+                    except FileNotFoundError as fnf_err:
+                        st.error(f"Model Loading Error: {fnf_err}")
+                        st.stop()
+                    except Exception as err:
+                        st.error(f"Inference Execution Error: {err}")
+                        st.stop()
 
                 # Render Verdict Card
                 if pred == 1:
-                    sub_title = f"AUTO-DEFENSE TRIGGERED ({spam_votes}/8 Models Flagged Threat)" if is_auto_ensemble else "THREAT LEVEL: HIGH"
-                    detail_p = f"Threat indicators identified by {', '.join(triggering_models[:2])}. High-sensitivity models detected fraudulent intent, fee traps, or credential smishing despite conversational masking." if is_auto_ensemble else "This message matches characteristic fraudulent patterns, unsolicited marketing, or credential phishing hooks."
+                    sub_title = f"PREDICTED SPAM ({spam_votes}/8 Models Flagged Spam)" if is_ensemble else "PREDICTED SPAM"
+                    detail_text = (
+                        f"Ensemble consensus identified spam characteristics across {spam_votes} of 8 models. "
+                        "Content exhibits promotional patterns, urgency cues, or smishing indicators."
+                        if is_ensemble else
+                        f"The selected {active_clf_display} pipeline ({active_feat_display}) classified this message as SPAM based on extracted n-gram term frequencies."
+                    )
                     st.markdown(f"""
                     <div class="verdict-box-spam">
                         <span class="verdict-badge-spam">SPAM DETECTED</span>
-                        <h2 style="color: #E66B36; margin: 4px 0 8px 0; font-size: 1.55rem;">{sub_title}</h2>
+                        <h2 style="color: #E66B36; margin: 4px 0 8px 0; font-size: 1.50rem;">{sub_title}</h2>
                         <p style="color: #17232D; font-size: 0.90rem; margin: 0; line-height: 1.5;">
-                            {detail_p}
+                            {detail_text}
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
                     <div class="verdict-box-ham">
-                        <span class="verdict-badge-ham">SAFE (HAM)</span>
-                        <h2 style="color: #27866B; margin: 4px 0 8px 0; font-size: 1.55rem;">AUTHENTIC MESSAGE</h2>
+                        <span class="verdict-badge-ham">PREDICTED HAM</span>
+                        <h2 style="color: #27866B; margin: 4px 0 8px 0; font-size: 1.50rem;">PREDICTED HAM</h2>
                         <p style="color: #17232D; font-size: 0.90rem; margin: 0; line-height: 1.5;">
-                            Linguistic analysis indicates regular conversational or informational message content. No unauthorized threat triggers detected across evaluated models.
+                            No spam indicators were detected by the selected pipeline. 
+                            <em>(Note: Statistical classifiers indicate message characteristics align with legitimate traffic; absolute safety cannot be guaranteed).</em>
                         </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                # Cross-Model Warning Alert when single model said SAFE but other models flagged SPAM
-                if not is_auto_ensemble and pred == 0 and spam_votes > 0:
-                    st.markdown(f"""
-                    <div style="background: #FFF5F0; border: 1px solid #E66B36; border-left: 6px solid #E66B36; border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 0.85rem; line-height: 1.5;">
-                        <strong style="color: #E66B36;">⚠️ AUTO-DEFENSE ALERT: Cross-Model Threat Detected!</strong><br>
-                        While <em>{model_choice} ({active_feat_name})</em> categorized this message as SAFE due to conversational words, 
-                        <strong>{spam_votes} other pipeline(s)</strong> (including <strong>{triggering_models[0]}</strong>) flagged it as <strong>🚨 SPAM</strong>.
                     </div>
                     """, unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
 
-                # Telemetry Grid
+                # Telemetry Metric Grid
                 t1, t2, t3 = st.columns(3)
                 with t1:
                     st.markdown(f"""
                     <div class="metric-panel">
                         <div class="metric-panel-label">Pipeline</div>
-                        <div style="font-size: 0.88rem; font-weight: 700; color: #17232D;">{active_pipeline_name}</div>
-                        <div class="metric-panel-caption">{active_feat_name}</div>
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #17232D;">{active_clf_display}</div>
+                        <div class="metric-panel-caption">{active_feat_display}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with t2:
@@ -618,23 +646,27 @@ if nav_selection == "Message Analyzer":
                     <div class="metric-panel">
                         <div class="metric-panel-label">Inference Latency</div>
                         <div style="font-size: 1.25rem; font-weight: 700; color: #17232D;">{latency_ms:.1f} ms</div>
-                        <div class="metric-panel-caption">{"All 8 Models" if is_auto_ensemble else "Single Sample"}</div>
+                        <div class="metric-panel-caption">{"All 8 Models" if is_ensemble else "Single Model"}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with t3:
                     prob_val = f"{probs[1]*100:.1f}%" if probs is not None else "N/A"
-                    prob_caption = "Max Ensemble Prob" if is_auto_ensemble else ("Platt Calibrated" if "SVM" in model_choice else "Posterior Probability")
+                    caption_text = (
+                        "Mean Ensemble Posterior" if is_ensemble else
+                        ("Platt Calibrated" if "SVM" in active_clf_display else "Posterior Probability")
+                    )
+                    prob_color = "#E66B36" if pred == 1 else "#27866B"
                     st.markdown(f"""
                     <div class="metric-panel">
                         <div class="metric-panel-label">Spam Probability</div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: {'#E66B36' if pred==1 else '#27866B'};">{prob_val}</div>
-                        <div class="metric-panel-caption">{prob_caption}</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: {prob_color};">{prob_val}</div>
+                        <div class="metric-panel-caption">{caption_text}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
                 if probs is not None:
                     st.markdown("<br>", unsafe_allow_html=True)
-                    st.write("**Classification Margin Distribution:**")
+                    st.write("**Posterior Margin Distribution:**")
                     st.progress(float(probs[1]))
                     st.markdown(f"""
                     <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #68747B;">
@@ -643,36 +675,19 @@ if nav_selection == "Message Analyzer":
                     </div>
                     """, unsafe_allow_html=True)
 
-                # Normalized Tokens
+                # Normalized Tokens Representation
                 st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown("**NLP Root Token Representation:**")
+                st.markdown("**NLP Preprocessed Token Representation:**")
                 st.markdown(f"""
                 <div class="tech-tag" style="display: block; padding: 10px 14px; background: #FFFFFF; font-size: 0.82rem; border: 1px solid #D9DFE1; color: #17232D; margin-bottom: 16px;">
-                    {cleaned_tokens or '[All tokens filtered as standard English stopwords]'}
+                    {cleaned_tokens or '[All tokens filtered as standard stopwords]'}
                 </div>
                 """, unsafe_allow_html=True)
 
-                # --- Cross-Model Consensus Radar (All 8 Pipelines) ---
-                st.markdown("##### 🔍 Multi-Model Consensus (All 8 Pipelines)")
-
-                if spam_votes >= 5:
-                    status_html = f"<span style='color: #E66B36; font-weight: 700;'>🚨 HIGH THREAT CONSENSUS ({spam_votes}/8 Models Flagged SPAM)</span>"
-                elif spam_votes > 0:
-                    status_html = f"<span style='color: #E66B36; font-weight: 700;'>⚠️ DISCORDANT / PARTIAL THREAT ({spam_votes}/8 Models Flagged SPAM)</span>"
-                else:
-                    status_html = f"<span style='color: #27866B; font-weight: 700;'>✅ UNANIMOUS SAFE (0/8 Models Flagged SPAM)</span>"
-
-                st.markdown(f"""
-                <div style="background: #FFFFFF; border: 1px solid #D9DFE1; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; font-size: 0.84rem; line-height: 1.6;">
-                    <div><strong>Consensus Radar:</strong> {status_html}</div>
-                    <div style="color: #68747B; font-size: 0.78rem; margin-top: 2px;">
-                        Models diverge on conversational smishing: Bernoulli NB triggers on binary keywords ('fee', 'pay'), while TF-IDF Linear SVM discounts them due to frequent benign terms.
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
+                # Multi-Model Consensus Breakdown (All 8 Pipelines)
+                st.markdown("##### 🔍 Multi-Model Comparison (All 8 Pipelines)")
                 df_consensus = pd.DataFrame(consensus_rows)
-                st.dataframe(df_consensus, use_container_width=True, hide_index=True)
+                st.dataframe(df_consensus, width="stretch", hide_index=True)
         else:
             st.markdown("""
             <div class="empty-state-box">
@@ -699,57 +714,81 @@ elif nav_selection == "Model Performance":
             </div>
             <h1 style="font-size: 1.8rem; margin: 2px 0 0 0;">Model Performance</h1>
             <div style="font-size: 0.88rem; color: #68747B; margin-top: 2px;">
-                Quantitative evaluation across 8 experimental combinations (2 Feature Extractors &times; 4 Classifiers) on 1,032 test messages.
+                Quantitative evaluation across 8 experimental combinations (2 Feature Extractors &times; 4 Classifiers) on 1,032 untouched test messages.
             </div>
         </div>
         <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #68747B;">
-            VALIDATION METHOD<br>
-            <span style="color: #27866B; font-weight: 600;">STRATIFIED 80:20 TEST SET</span>
+            VALIDATION PROTOCOL<br>
+            <span style="color: #27866B; font-weight: 600;">5-FOLD CV + TEST SET</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 4 Top KPI Cards
-    k1, k2, k3, k4 = st.columns(4)
-    with k1:
-        st.markdown("""
-        <div class="metric-panel">
-            <div class="metric-panel-label">Peak Accuracy</div>
-            <div class="metric-panel-value">98.16%</div>
-            <div class="metric-panel-caption">Linear SVM (E4, E8)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with k2:
-        st.markdown("""
-        <div class="metric-panel">
-            <div class="metric-panel-label">Peak Precision</div>
-            <div class="metric-panel-value" style="color: #27866B;">97.39%</div>
-            <div class="metric-panel-caption">CountVec + Linear SVM (3 FP)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with k3:
-        st.markdown("""
-        <div class="metric-panel">
-            <div class="metric-panel-label">Peak Recall</div>
-            <div class="metric-panel-value" style="color: #E66B36;">89.06%</div>
-            <div class="metric-panel-caption">CountVec + MNB (114 / 128 Spam)</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with k4:
-        st.markdown("""
-        <div class="metric-panel">
-            <div class="metric-panel-label">Top F1-Score</div>
-            <div class="metric-panel-value">92.24%</div>
-            <div class="metric-panel-caption">TF-IDF + Linear SVM (Top F1)</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Full Factorial Table
-    st.markdown("### Factorial Evaluation Matrix (All 8 Experiments)")
     df_results = load_evaluation_metrics()
+    meta = load_selected_model_metadata()
+
     if df_results is not None:
+        # Dynamically calculate KPI values from empirical results
+        peak_acc_row = df_results.loc[df_results["Accuracy"].idxmax()]
+        peak_prec_row = df_results.loc[df_results["Precision"].idxmax()]
+        peak_rec_row = df_results.loc[df_results["Recall"].idxmax()]
+        peak_f1_row = df_results.loc[df_results["F1-Score"].idxmax()]
+
+        champ_name = meta.get("selected_model_name", "TF-IDF + Bernoulli Naive Bayes") if meta else "TF-IDF + Bernoulli Naive Bayes"
+        champ_rows = df_results[df_results["Experiment"] == champ_name]
+        champ_row = champ_rows.iloc[0] if not champ_rows.empty else peak_acc_row
+
+        # 4 Top KPI Cards (Dynamically populated)
+        k1, k2, k3, k4 = st.columns(4)
+        with k1:
+            st.markdown(f"""
+            <div class="metric-panel">
+                <div class="metric-panel-label">Validation Champion F1</div>
+                <div class="metric-panel-value" style="color: #27866B;">{champ_row['F1-Score']*100:.2f}%</div>
+                <div class="metric-panel-caption">{champ_name} (Acc: {champ_row['Accuracy']*100:.2f}%)</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with k2:
+            st.markdown(f"""
+            <div class="metric-panel">
+                <div class="metric-panel-label">Peak Test Accuracy</div>
+                <div class="metric-panel-value">{peak_acc_row['Accuracy']*100:.2f}%</div>
+                <div class="metric-panel-caption">{peak_acc_row['Experiment']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with k3:
+            st.markdown(f"""
+            <div class="metric-panel">
+                <div class="metric-panel-label">Peak Test Precision</div>
+                <div class="metric-panel-value" style="color: #27866B;">{peak_prec_row['Precision']*100:.2f}%</div>
+                <div class="metric-panel-caption">{peak_prec_row['Experiment']} ({int(peak_prec_row['FP (False Alarm)'])} FP)</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with k4:
+            st.markdown(f"""
+            <div class="metric-panel">
+                <div class="metric-panel-label">Peak Test Recall</div>
+                <div class="metric-panel-value" style="color: #E66B36;">{peak_rec_row['Recall']*100:.2f}%</div>
+                <div class="metric-panel-caption">{peak_rec_row['Experiment']} ({int(128 - peak_rec_row['FN (Missed Spam)'])} / 128 Spam)</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Scientific Model Selection Notice
+        st.markdown(f"""
+        <div style="background: #FFFFFF; border: 1px solid #D9DFE1; border-left: 6px solid #27866B; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px; font-size: 0.88rem; line-height: 1.6;">
+            <strong>★ Model Selection Protocol (Zero Test Leakage):</strong><br>
+            In accordance with rigorous academic methodology, model selection was conducted strictly using 
+            <strong>Stratified 5-Fold Cross-Validation on the training partition ($X_{{\\text{{train}}}}$)</strong>. 
+            The selected champion is <strong>{champ_name}</strong> (Mean CV $F_1 = 93.69\\% \\pm 1.77\\%$), which generalized to 
+            <strong>{champ_row['Accuracy']*100:.2f}% Test Accuracy</strong>, <strong>{champ_row['Precision']*100:.2f}% Precision</strong>, 
+            and yielded only <strong>{int(champ_row['FP (False Alarm)'])} False Positive out of 904 legitimate messages</strong> (0.11% false alarm rate).
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Full Factorial Evaluation Table
+        st.markdown("### Factorial Evaluation Matrix (All 8 Experiments)")
         filter_tech = st.radio(
             "Filter Experiments:",
             ["All 8 Pipelines", "TF-IDF Only", "CountVectorizer Only"],
@@ -762,42 +801,43 @@ elif nav_selection == "Model Performance":
         elif filter_tech == "CountVectorizer Only":
             display_df = display_df[display_df["Feature_Extraction"] == "CountVectorizer"]
 
+        # Tag champion in display
+        display_df["Champion"] = display_df["Experiment"].apply(lambda x: "★ Champion" if x == champ_name else "")
+
         # Format percentages
         for c in ["Accuracy", "Precision", "Recall", "F1-Score"]:
             display_df[c] = (display_df[c] * 100).round(2).astype(str) + "%"
 
-        st.dataframe(
-            display_df[[
-                "Experiment", "Feature_Extraction", "Algorithm",
-                "Accuracy", "Precision", "Recall", "F1-Score",
-                "FP (False Alarm)", "FN (Missed Spam)"
-            ]],
-            use_container_width=True,
-            hide_index=True
-        )
+        cols_order = [
+            "Champion", "Experiment", "Feature_Extraction", "Algorithm",
+            "Accuracy", "Precision", "Recall", "F1-Score",
+            "FP (False Alarm)", "FN (Missed Spam)"
+        ]
+        st.dataframe(display_df[cols_order], width="stretch", hide_index=True)
+
     else:
-        st.error("Results file reports/results/results_summary.csv not found.")
+        st.error("Evaluation results file 'reports/results/results_summary.csv' not found. Please run 'python src/evaluation.py'.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Charts Row
+    # Performance Visualizations Grid
     st.markdown("### Performance Visualizations")
     col_g1, col_g2 = st.columns(2)
     with col_g1:
-        f1_chart = os.path.join(os.path.dirname(__file__), "reports", "figures", "f1_comparison.png")
+        f1_chart = os.path.join(PROJECT_ROOT, "reports", "figures", "f1_comparison.png")
         if os.path.exists(f1_chart):
-            st.image(f1_chart, caption="Figure 1: Spam F1-Score Comparison across Experiments", use_container_width=True)
+            st.image(f1_chart, caption="Figure 1: Spam F1-Score Comparison across Experiments", width="stretch")
 
     with col_g2:
-        feat_chart = os.path.join(os.path.dirname(__file__), "reports", "figures", "feature_extraction_comparison.png")
+        feat_chart = os.path.join(PROJECT_ROOT, "reports", "figures", "feature_extraction_comparison.png")
         if os.path.exists(feat_chart):
-            st.image(feat_chart, caption="Figure 2: TF-IDF vs. CountVectorizer Aggregated Comparison", use_container_width=True)
+            st.image(feat_chart, caption="Figure 2: TF-IDF vs. CountVectorizer Aggregated Comparison", width="stretch")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 8-Panel Confusion Matrix Grid")
-    all_cm = os.path.join(os.path.dirname(__file__), "reports", "figures", "confusion_matrices_all8.png")
+    all_cm = os.path.join(PROJECT_ROOT, "reports", "figures", "confusion_matrices_all8.png")
     if os.path.exists(all_cm):
-        st.image(all_cm, caption="Figure 3: Confusion Matrices for All 8 Experimental Pipelines (904 Ham, 128 Spam)", use_container_width=True)
+        st.image(all_cm, caption="Figure 3: Confusion Matrices for All 8 Experimental Pipelines (904 Ham, 128 Spam)", width="stretch")
 
 
 # ==============================================================================
@@ -822,44 +862,58 @@ elif nav_selection == "Dataset Explorer":
     </div>
     """, unsafe_allow_html=True)
 
+    audit_metrics = load_dataset_audit_metrics()
+
+    if audit_metrics is not None:
+        clean_dist = audit_metrics["cleaned_distribution"]
+        total_clean = clean_dist["total"]
+        ham_clean = clean_dist["ham"]
+        spam_clean = clean_dist["spam"]
+        ham_pct = clean_dist["ham_pct"]
+        spam_pct = clean_dist["spam_pct"]
+        dropped = clean_dist["total_dropped"]
+        missing_vals = audit_metrics["null_labels"] + audit_metrics["null_messages"]
+    else:
+        total_clean, ham_clean, spam_clean, ham_pct, spam_pct, dropped, missing_vals = 5160, 4518, 642, 87.56, 12.44, 414, 0
+
     d1, d2, d3, d4, d5 = st.columns(5)
     with d1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-panel">
             <div class="metric-panel-label">Total Unique</div>
-            <div class="metric-panel-value">5,160</div>
+            <div class="metric-panel-value">{total_clean:,}</div>
             <div class="metric-panel-caption">Cleaned Messages</div>
         </div>
         """, unsafe_allow_html=True)
     with d2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-panel">
-            <div class="metric-panel-label">Ham (Safe)</div>
-            <div class="metric-panel-value" style="color: #27866B;">4,518</div>
-            <div class="metric-panel-caption">87.56% of Corpus</div>
+            <div class="metric-panel-label">Ham (Legitimate)</div>
+            <div class="metric-panel-value" style="color: #27866B;">{ham_clean:,}</div>
+            <div class="metric-panel-caption">{ham_pct:.2f}% of Corpus</div>
         </div>
         """, unsafe_allow_html=True)
     with d3:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-panel">
             <div class="metric-panel-label">Spam (Threat)</div>
-            <div class="metric-panel-value" style="color: #E66B36;">642</div>
-            <div class="metric-panel-caption">12.44% of Corpus</div>
+            <div class="metric-panel-value" style="color: #E66B36;">{spam_clean:,}</div>
+            <div class="metric-panel-caption">{spam_pct:.2f}% of Corpus</div>
         </div>
         """, unsafe_allow_html=True)
     with d4:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-panel">
             <div class="metric-panel-label">Deduplicated</div>
-            <div class="metric-panel-value">414</div>
+            <div class="metric-panel-value">{dropped}</div>
             <div class="metric-panel-caption">Duplicates Dropped</div>
         </div>
         """, unsafe_allow_html=True)
     with d5:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-panel">
             <div class="metric-panel-label">Missing Values</div>
-            <div class="metric-panel-value" style="color: #27866B;">0</div>
+            <div class="metric-panel-value" style="color: #27866B;">{missing_vals}</div>
             <div class="metric-panel-caption">Complete Records</div>
         </div>
         """, unsafe_allow_html=True)
@@ -869,29 +923,38 @@ elif nav_selection == "Dataset Explorer":
     col_cd1, col_cd2 = st.columns(2)
     with col_cd1:
         st.markdown("### Natural Class Distribution")
-        class_fig = os.path.join(os.path.dirname(__file__), "reports", "figures", "class_distribution.png")
+        class_fig = os.path.join(PROJECT_ROOT, "reports", "figures", "class_distribution.png")
         if os.path.exists(class_fig):
-            st.image(class_fig, use_container_width=True)
+            st.image(class_fig, width="stretch")
 
     with col_cd2:
-        st.markdown("### Message Length Characteristics")
-        len_fig = os.path.join(os.path.dirname(__file__), "reports", "figures", "message_length_distribution.png")
+        st.markdown("### Message Length & Word Distribution")
+        len_fig = os.path.join(PROJECT_ROOT, "reports", "figures", "message_length_distribution.png")
         if os.path.exists(len_fig):
-            st.image(len_fig, use_container_width=True)
+            st.image(len_fig, width="stretch")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### Preprocessing Transformation Impact (Corpus Level)")
-    df_prep = pd.DataFrame([
-        {"Corpus Metric": "Character Volume", "Raw Corpus": "408,360", "Preprocessed Root": "246,088", "Reduction": "-39.74%"},
-        {"Corpus Metric": "Word Tokens", "Raw Corpus": "79,521", "Preprocessed Root": "44,883", "Reduction": "-43.56%"},
-        {"Corpus Metric": "Unique Vocabulary", "Raw Corpus": "13,627", "Preprocessed Root": "8,001", "Reduction": "-41.29%"}
-    ])
-    st.dataframe(df_prep, use_container_width=True, hide_index=True)
+
+    # Distribution Statistics Table
+    if audit_metrics is not None and "character_length_statistics" in audit_metrics:
+        st.markdown("### Morphological Length & Word Statistics (Verified)")
+        c_stats = audit_metrics["character_length_statistics"]
+        w_stats = audit_metrics["word_count_statistics"]
+
+        df_morph = pd.DataFrame([
+            {"Metric Dimension": "Character Count (Overall)", "Mean ± Std": f"{c_stats['all']['mean']} ± {c_stats['all']['std']}", "Median": c_stats['all']['median'], "Min": c_stats['all']['min'], "25%": c_stats['all']['q25'], "75%": c_stats['all']['q75'], "Max": c_stats['all']['max']},
+            {"Metric Dimension": "Character Count (Ham)", "Mean ± Std": f"{c_stats['ham']['mean']} ± {c_stats['ham']['std']}", "Median": c_stats['ham']['median'], "Min": c_stats['ham']['min'], "25%": c_stats['ham']['q25'], "75%": c_stats['ham']['q75'], "Max": c_stats['ham']['max']},
+            {"Metric Dimension": "Character Count (Spam)", "Mean ± Std": f"{c_stats['spam']['mean']} ± {c_stats['spam']['std']}", "Median": c_stats['spam']['median'], "Min": c_stats['spam']['min'], "25%": c_stats['spam']['q25'], "75%": c_stats['spam']['q75'], "Max": c_stats['spam']['max']},
+            {"Metric Dimension": "Word Count (Overall)", "Mean ± Std": f"{w_stats['all']['mean']} ± {w_stats['all']['std']}", "Median": w_stats['all']['median'], "Min": w_stats['all']['min'], "25%": w_stats['all']['q25'], "75%": w_stats['all']['q75'], "Max": w_stats['all']['max']},
+            {"Metric Dimension": "Word Count (Ham)", "Mean ± Std": f"{w_stats['ham']['mean']} ± {w_stats['ham']['std']}", "Median": w_stats['ham']['median'], "Min": w_stats['ham']['min'], "25%": w_stats['ham']['q25'], "75%": w_stats['ham']['q75'], "Max": w_stats['ham']['max']},
+            {"Metric Dimension": "Word Count (Spam)", "Mean ± Std": f"{w_stats['spam']['mean']} ± {w_stats['spam']['std']}", "Median": w_stats['spam']['median'], "Min": w_stats['spam']['min'], "25%": w_stats['spam']['q25'], "75%": w_stats['spam']['q75'], "Max": w_stats['spam']['max']},
+        ])
+        st.dataframe(df_morph, width="stretch", hide_index=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### Cleaned Corpus Sample Records")
     samples_df = load_corpus_sample(10)
-    st.dataframe(samples_df[["label", "message"]], use_container_width=True)
+    st.dataframe(samples_df[["label", "message"]], width="stretch")
 
 
 # ==============================================================================
@@ -902,72 +965,71 @@ elif nav_selection == "Research Comparison":
     <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; border-bottom: 1px solid #D9DFE1; margin-bottom: 24px;">
         <div>
             <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; color: #E66B36; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">
-                Benchmark Validation
+                External Benchmark Validation
             </div>
             <h1 style="font-size: 1.8rem; margin: 2px 0 0 0;">Research Comparison</h1>
             <div style="font-size: 0.88rem; color: #68747B; margin-top: 2px;">
-                Direct comparative variance analysis against IEEE TENCON 2023 (Robert G. de Luna et al.).
+                Comparative evaluation against the peer-reviewed IEEE TENCON 2023 study (Robert G. de Luna et al.).
             </div>
         </div>
         <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #68747B;">
-            REFERENCE VENUE<br>
+            REFERENCE BENCHMARK<br>
             <span style="color: #27866B; font-weight: 600;">IEEE TENCON 2023</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### Published IEEE Reference Benchmarks (Table VII in de Luna et al.)")
+    st.markdown("### Published IEEE Benchmarks vs. Our Factorial Findings")
     st.markdown("""
     *Reference Paper:* **A Machine Learning Approach for Efficient Spam Detection in Short Messaging System (SMS)**  
-    *Authors:* Robert G. de Luna, Karina L. Enriquez, Aira Mae Española, et al. (Polytechnic University of the Philippines).
+    *Authors:* Robert G. de Luna, Karina L. Enriquez, Aira Mae Española, et al. (Polytechnic University of the Philippines), *Proc. IEEE TENCON 2023*.
     """)
 
+    # Academic Comparison Matrix
     df_paper_tbl = pd.DataFrame([
         {
             "Algorithm": "Bernoulli Naive Bayes (BNB)",
-            "IEEE TENCON 2023 Reported": "Acc: 96.6333% | Prec: 98.4431% | Rec: 95.5174% | F1: 92.7835%",
-            "Our Factorial Result (CountVec)": "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%",
-            "Our Factorial Result (TF-IDF)": "Acc: 98.06% | Prec: 97.37% | Rec: 86.72% | F1: 91.74%",
-            "Academic Finding": "Top model in the IEEE study. Binarized presence/absence modeling yields identical high accuracy across both feature spaces."
+            "IEEE TENCON 2023 Published (Table VII)": "Acc: 96.6333% | Prec: 98.44% | Rec: 95.52% | F1: 92.78%",
+            "Our Study (TF-IDF)": "Acc: 98.55% | Prec: 99.13% | Rec: 89.06% | F1: 93.83% [★ Champion]",
+            "Our Study (CountVectorizer)": "Acc: 98.55% | Prec: 99.13% | Rec: 89.06% | F1: 93.83%",
+            "Academic Notes": "Selected as champion via training 5-fold CV. Low false positive rate (1 / 904)."
         },
         {
             "Algorithm": "Random Forest Classifier (RFC)",
-            "IEEE TENCON 2023 Reported": "Acc: 96.0297% | Prec: 98.5228% | Rec: 94.8699% | F1: 91.1408%",
-            "Our Factorial Result (CountVec)": "N/A (Focus on 4 core linear/probabilistic models)",
-            "Our Factorial Result (TF-IDF)": "N/A (Focus on 4 core linear/probabilistic models)",
-            "Academic Finding": "Important Correction: 96.0297% in Table VII belongs to Random Forest, NOT Multinomial Naive Bayes."
+            "IEEE TENCON 2023 Published (Table VII)": "Acc: 96.0297% | Prec: 98.52% | Rec: 94.87% | F1: 91.14%",
+            "Our Study (TF-IDF)": "N/A (Focus on linear/probabilistic models)",
+            "Our Study (CountVectorizer)": "N/A (Focus on linear/probabilistic models)",
+            "Academic Notes": "Important Clarification: 96.0297% in IEEE Table VII belongs to Random Forest, NOT Multinomial NB."
         },
         {
             "Algorithm": "Logistic Regression (LR)",
-            "IEEE TENCON 2023 Reported": "Acc: 95.8709% | Prec: 98.7711% | Rec: 93.7399% | F1: 89.2555%",
-            "Our Factorial Result (CountVec)": "Acc: 97.87% | Prec: 97.32% | Rec: 85.16% | F1: 90.83%",
-            "Our Factorial Result (TF-IDF)": "Acc: 97.97% | Prec: 96.52% | Rec: 86.72% | F1: 91.36%",
-            "Academic Finding": "Solid linear baseline across both investigations. Sublinear TF-IDF scaling improved F1 to 91.36%."
+            "IEEE TENCON 2023 Published (Table VII)": "Acc: 95.8709% | Prec: 98.77% | Rec: 93.74% | F1: 89.26%",
+            "Our Study (TF-IDF)": "Acc: 98.55% | Prec: 99.13% | Rec: 89.06% | F1: 93.83%",
+            "Our Study (CountVectorizer)": "Acc: 98.84% | Prec: 100.00% | Rec: 90.62% | F1: 95.08%",
+            "Academic Notes": "CountVectorizer achieved 100% test precision (0 false alarms out of 904 legitimate messages)."
         },
         {
             "Algorithm": "Linear Support Vector Machine",
-            "IEEE TENCON 2023 Reported": "Acc: 94.5684% (Default CV, unoptimized in Table VII)",
-            "Our Factorial Result (CountVec)": "Acc: 98.16% | Prec: 97.39% | Rec: 87.50% | F1: 92.18%",
-            "Our Factorial Result (TF-IDF)": "Acc: 98.16% | Prec: 96.58% | Rec: 88.28% | F1: 92.24%",
-            "Academic Finding": "Omitted from Table VII optimization in the IEEE study. Hyperparameter tuning elevated Linear SVM to our #1 top model."
+            "IEEE TENCON 2023 Published (Table VII)": "Acc: 94.5684% (Default CV, unoptimized in paper)",
+            "Our Study (TF-IDF)": "Acc: 98.26% | Prec: 95.08% | Rec: 90.62% | F1: 92.80%",
+            "Our Study (CountVectorizer)": "Acc: 98.74% | Prec: 98.32% | Rec: 91.41% | F1: 94.74%",
+            "Academic Notes": "GridSearchCV optimization elevated Linear SVM significantly above the reference baseline."
         }
     ])
-    st.dataframe(df_paper_tbl, use_container_width=True, hide_index=True)
+    st.dataframe(df_paper_tbl, width="stretch", hide_index=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    paper_chart = os.path.join(os.path.dirname(__file__), "reports", "figures", "paper_vs_our_comparison.png")
+    paper_chart = os.path.join(PROJECT_ROOT, "reports", "figures", "paper_vs_our_comparison.png")
     if os.path.exists(paper_chart):
-        st.image(paper_chart, caption="Figure 4: Comparative Accuracy across IEEE TENCON 2023 and Our Dual Feature Extractions", use_container_width=True)
+        st.image(paper_chart, caption="Figure 4: Comparative Accuracy across IEEE TENCON 2023 and Our Dual Feature Extractions", width="stretch")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
-    ### Critical Methodological Divergences:
-    1. **Artificial Partitioning vs. Authentic Imbalance:**  
-       The IEEE authors undersampled ham messages to force an approximate **60:40 Ham-to-Spam partition** (1,930 ham, 1,218 spam). Our project retained the real-world **87.6% Ham : 12.4% Spam** natural distribution. Artificially increasing spam density inflates model recall (95.5% vs 88.3%) because spam patterns appear at triple their real-world frequency.
-    2. **Feature Extraction Philosophy:**  
-       The IEEE authors selected CountVectorizer based on an initial MNB test. Our factorial investigation demonstrates that **TF-IDF with sublinear scaling achieves superior performance for Linear SVM and Logistic Regression**, mitigating high-frequency generic word noise.
-    3. **Controlled Equivalence Disclaimer:**  
-       This comparison serves as an **external benchmark validation**, not a direct controlled ablation, due to distinct regional corpora and sampling procedures.
+    ### Critical Methodological Distinctions:
+    1. **Corpora Differences:** The IEEE study evaluated a regional corpus of 3,000 SMS messages, while our investigation utilized the verified UCI SMS Spam Collection repository (5,160 clean unique messages).
+    2. **Class Imbalance & Sampling Bias:** The IEEE authors undersampled ham messages to force an approximate **60:40 Ham-to-Spam partition** (1,930 ham, 1,218 spam). Our study preserved the authentic real-world **87.56% Ham : 12.44% Spam natural distribution**. Artificially tripling spam density inflates model recall (95.5% vs 89.1%).
+    3. **Feature Engineering:** The IEEE authors selected CountVectorizer exclusively based on an initial check. Our factorial study demonstrates that **TF-IDF with sublinear scaling achieves superior stability for Linear SVM and Naive Bayes**.
+    4. **Controlled Equivalence Disclaimer:** This comparison functions as an **external benchmark validation**, not a direct controlled ablation, due to distinct regional corpora and sampling methodologies.
     """)
 
 
@@ -993,11 +1055,11 @@ elif nav_selection == "About Project":
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
+    st.markdown(r"""
     <div class="editorial-card">
         <h3 style="margin-top: 0;">Abstract</h3>
         <p style="font-size: 0.90rem; line-height: 1.6; color: #17232D;">
-            Short Message Service (SMS) remains a critical telecommunication channel, yet mobile subscribers are increasingly targeted by fraudulent text spam. This study presents a comparative empirical investigation of supervised Machine Learning algorithms using the official UCI SMS Spam Collection dataset. We implement a 2 &times; 4 full factorial experimental design evaluating two feature extraction methods (TF-IDF and CountVectorizer) across four classification algorithms: Multinomial Naive Bayes, Bernoulli Naive Bayes, Logistic Regression, and Linear Support Vector Machine. Linear SVM with TF-IDF achieved the highest overall performance with 98.16% Accuracy and 92.24% F1-Score, while Bernoulli Naive Bayes attained 97.37% precision with only 3 false alarms out of 904 legitimate messages.
+            Short Message Service (SMS) remains a critical mobile telecommunications channel, yet subscribers are increasingly subjected to fraudulent text scams and smishing. This study presents a comparative empirical investigation of supervised Machine Learning algorithms using the official UCI SMS Spam Collection dataset (ID: 228). We implement a 2 &times; 4 full factorial experimental design evaluating two feature extraction methods (TF-IDF and CountVectorizer) across four classification algorithms: Multinomial Naive Bayes, Bernoulli Naive Bayes, Logistic Regression, and Linear Support Vector Machine. Model selection was conducted strictly via Stratified 5-Fold Cross-Validation on the training partition ($X_{\text{train}}$), selecting <strong>TF-IDF + Bernoulli Naive Bayes</strong> as champion (Mean CV $F_1 = 93.69\% \pm 1.77\%$). Evaluated on the untouched test split ($N = 1,032$), the champion achieved <strong>98.55% Accuracy</strong>, <strong>99.13% Precision</strong>, <strong>93.83% $F_1$</strong>, and generated only <strong>1 False Positive out of 904 legitimate messages</strong> (0.11% false alarm rate).
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -1008,19 +1070,17 @@ elif nav_selection == "About Project":
         <div class="editorial-card">
             <h4 style="margin-top: 0;">Research Objectives</h4>
             <ul style="font-size: 0.88rem; line-height: 1.6; color: #17232D; padding-left: 18px;">
-                <li>Execute an end-to-end NLP & machine learning classification pipeline.</li>
+                <li>Execute an end-to-end reproducible NLP & machine learning classification pipeline.</li>
                 <li>Implement a 2 &times; 4 full factorial comparison of TF-IDF vs. CountVectorizer.</li>
-                <li>Enforce mathematical binarization for Bernoulli Naive Bayes.</li>
-                <li>Prevent data leakage via isolated Scikit-learn Pipeline constructs.</li>
-                <li>Conduct external benchmark validation against IEEE TENCON 2023.</li>
+                <li>Enforce mathematical binarization for Bernoulli Naive Bayes feature presence.</li>
+                <li>Prevent data snooping and leakage via isolated Pipeline objects and training-driven CV selection.</li>
+                <li>Conduct external benchmark validation against the IEEE TENCON 2023 study.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
 
-    import platform
     import sklearn
     import nltk
-    import numpy as np
 
     with c_ab2:
         st.markdown(f"""
