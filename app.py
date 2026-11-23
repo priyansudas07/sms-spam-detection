@@ -869,6 +869,30 @@ elif nav_selection == "Model Performance":
         ]
         st.dataframe(display_df[cols_order], width="stretch", hide_index=True)
 
+        # Academic Research Questions (RQ1 - RQ6) Expander
+        with st.expander("🎓 Faculty & Evaluator Questions (RQ1 – RQ6) & Empirical Answers", expanded=True):
+            st.markdown("""
+            <div style="font-size: 0.88rem; line-height: 1.6; color: #17232D;">
+                <p><strong>1. Which classifier achieved the highest accuracy?</strong><br>
+                <span style="color: #27866B; font-weight: 600;">CountVectorizer + Logistic Regression</span> achieved the highest test accuracy of <strong>98.84%</strong> (1,020 / 1,032 correct), closely followed by CountVectorizer + Linear SVM (<strong>98.74%</strong>). On training 5-fold CV, TF-IDF + Bernoulli NB achieved <strong>98.40% ± 0.38%</strong>.</p>
+
+                <p><strong>2. Which classifier achieved the highest F1-score?</strong><br>
+                <span style="color: #27866B; font-weight: 600;">CountVectorizer + Logistic Regression</span> achieved the highest test F1-score of <strong>95.08%</strong>, followed by CountVectorizer + Linear SVM (<strong>94.74%</strong>). The official cross-validation champion is <strong>TF-IDF + Bernoulli Naive Bayes</strong> (Mean CV F1 = <strong>93.69%</strong>).</p>
+
+                <p><strong>3. Which classifier detected spam most effectively?</strong><br>
+                For telecommunications carrier safety where false alarms destroy subscriber trust, <span style="color: #27866B; font-weight: 600;">CountVectorizer + Logistic Regression</span> is most effective, achieving <strong>100.00% Precision (0 False Positives out of 904 legitimate texts)</strong>. For modern adversarial smishing (e.g. USPS package delivery scams), the <span style="color: #E66B36; font-weight: 600;">Tier-2 Hybrid Smishing Guard</span> is most effective, maintaining >91% recall.</p>
+
+                <p><strong>4. Which classifier produced the fewest false negatives (missed spam)?</strong><br>
+                <span style="color: #27866B; font-weight: 600;">CountVectorizer + Linear SVM</span> and <span style="color: #27866B; font-weight: 600;">CountVectorizer + Multinomial Naive Bayes</span> produced the fewest false negatives, tied at only <strong>11 Missed Spam messages</strong> out of 128 (Recall = <strong>91.41%</strong>, 117 / 128 threats intercepted).</p>
+
+                <p><strong>5. Why might one algorithm perform better than another?</strong><br>
+                <em>Generative vs. Discriminative:</em> Naive Bayes assumes conditional feature independence which natural language violates. However, BNB's binary presence modeling acts as a regularizer, yielding an ultra-conservative boundary (1 FP). Discriminative models (LR & SVM) learn additive decision boundaries directly without independence assumptions, allowing decisive tokens (<code>urltoken</code>, <code>fee</code>) to cleanly separate spam. Linear SVM maximizes the margin (highest recall, 11 FN), while L2-regularized Logistic Regression optimizes smooth log-loss (0 FP).</p>
+
+                <p><strong>6. Does TF-IDF provide effective features for SMS classification?</strong><br>
+                <strong>Yes, but with text-length nuances.</strong> TF-IDF with sublinear scaling produced our Validation Champion (TF-IDF + Bernoulli NB, 98.55% Acc, 99.13% Prec, 1 FP). However, because SMS messages are short (avg ~15 words), words rarely repeat (f=1). Raw CountVectorizer n-grams retain sharp binary indicator presence without IDF smoothing penalties, slightly outperforming TF-IDF on linear models (95.08% vs 93.83% F1 on LR). For Bernoulli NB, TF-IDF and CountVec give identical metrics due to Boolean event binarization.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
     else:
         st.error("Evaluation results file 'reports/results/results_summary.csv' not found. Please run 'python src/evaluation.py'.")
 

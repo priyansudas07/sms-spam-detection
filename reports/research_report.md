@@ -48,6 +48,15 @@ Automated SMS spam classification in cellular networks poses three critical chal
 7. Benchmark experimental findings against published results from IEEE TENCON 2023 (*Robert G. de Luna et al.*).
 8. Deliver an interactive Streamlit workstation (**SIGNAL — SMS Intelligence Lab**) with runtime latency and calibrated probability profiling.
 
+### 4.1 Core Research Questions (RQ1 – RQ6)
+This investigation is structured to answer six central academic and engineering research questions:
+- **RQ1 (Highest Accuracy):** Which classifier achieved the highest overall classification accuracy on the untouched test partition?
+- **RQ2 (Highest $F_1$-Score):** Which classifier achieved the highest positive-class $F_1$-score balancing precision and recall?
+- **RQ3 (Spam Detection Efficacy):** Which classifier detected spam most effectively when evaluated against telecommunication false-alarm penalties ($FP$ cost)?
+- **RQ4 (Fewest False Negatives):** Which classifier produced the fewest false negatives (missed spam messages)?
+- **RQ5 (Algorithmic Inductive Bias):** Why might one classification algorithm perform better than another in SMS spam filtering?
+- **RQ6 (Feature Extraction Impact):** Does TF-IDF provide effective features for SMS text classification compared to discrete CountVectorizer?
+
 ---
 
 ## 5. Dataset Provenance and Integrity Audit
@@ -180,6 +189,50 @@ All eight trained pipelines were evaluated once on the isolated test partition (
    **CountVectorizer + Logistic Regression** attained the peak test $F_1$-score (95.08%) and achieved **100% Precision with 0 False Positives**.
 3. **Representation Stability:**  
    Bernoulli Naive Bayes produced identical test metrics under both TF-IDF and CountVectorizer (98.55% Accuracy, 93.83% $F_1$, 1 FP), demonstrating that true binary indicator event modeling isolates presence/absence information independent of token weighting scheme.
+
+### 10.1 Empirical Answers to Core Research Questions (RQ1 – RQ6)
+
+#### RQ1: Which classifier achieved the highest accuracy?
+**CountVectorizer + Logistic Regression** achieved the highest test accuracy of **98.84%** (1,020 out of 1,032 test messages correctly classified).
+- Runner-up: **CountVectorizer + Linear SVM** achieved **98.74%** (1,019/1,032).
+- Third: **Bernoulli Naive Bayes** (both TF-IDF and CountVec) and **TF-IDF + Logistic Regression** tied at **98.55%** (1,017/1,032).
+- *Training Cross-Validation:* On training 5-fold CV, **TF-IDF + Bernoulli Naive Bayes** attained the highest validation accuracy of **98.40% ± 0.38%**.
+
+#### RQ2: Which classifier achieved the highest F1-score?
+**CountVectorizer + Logistic Regression** achieved the highest positive-class test $F_1$-score of **95.08%** (0.9508).
+- Runner-up: **CountVectorizer + Linear SVM** achieved **94.74%** $F_1$.
+- Third: **Bernoulli Naive Bayes** achieved **93.83%** $F_1$ across both feature extractors.
+- *Validation Protocol Note:* On the training partition ($X_{\text{train}}, N=4,128$), **TF-IDF + Bernoulli Naive Bayes** attained the highest Mean CV $F_1$-score (**93.69% ± 1.77%**), earning its selection as the official **Validation Champion**.
+
+#### RQ3: Which classifier detected spam most effectively?
+"Efficacy" in telecommunications requires balancing spam interception against the severe cost of false alarms:
+1. **For False-Alarm Elimination (Carrier Trust):** **CountVectorizer + Logistic Regression** is the most effective model, achieving **100.00% Precision** with **0 False Positives out of 904 legitimate texts** (0.0% false alarm rate), while successfully intercepting 90.62% of spam. In telecommunications, blocking an authentic personal, banking, or medical text destroys subscriber trust; achieving zero false positives is the ultimate industry objective.
+2. **For Spam Interception Coverage (Maximum Detection):** **CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** detected spam most aggressively, achieving **91.41% Recall** (117 of 128 spam messages blocked, missing only 11).
+3. **For Adversarial Smishing Resilience (Modern Concept Drift):** The **Tier-2 Hybrid Smishing Consensus Guard** detected spam most effectively against evasive modern attacks (e.g., USPS package tracking alerts with payment demands), achieving $>91\%$ recall where historical standalone generative models failed.
+
+#### RQ4: Which classifier produced the fewest false negatives (missed spam)?
+**CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** produced the fewest false negatives, tied at only **11 False Negatives** out of 128 spam messages (Recall = **91.41%**, True Positives = 117/128).
+- Comparison: CountVectorizer + Logistic Regression produced 12 FN (Recall = 90.62%); TF-IDF + Linear SVM produced 12 FN (Recall = 90.62%); Bernoulli Naive Bayes produced 14 FN (Recall = 89.06%); TF-IDF + Multinomial Naive Bayes produced 15 FN (Recall = 88.28%).
+
+#### RQ5: Why might one algorithm perform better than another?
+Performance differentials are governed by fundamental differences in mathematical formulations and inductive biases:
+1. **Generative vs. Discriminative Modeling:**
+   - **Naive Bayes (MNB & BNB) is generative:** It models joint probability $P(\mathbf{x}, y)$ and assumes strict conditional feature independence given the class ($P(\mathbf{x} \mid y) = \prod P(x_j \mid y)$). In natural language, words correlate strongly (e.g., `urgent` and `call`, `redelivery` and `fee`). This violation pushes probability estimates to extreme bounds ($0$ or $1$). However, BNB's binary presence modeling ($x_j \in \{0, 1\}$) acts as a natural regularizer, yielding an exceptionally conservative decision rule with only 1 false positive.
+   - **Logistic Regression & Linear SVM are discriminative:** They model posterior $P(y \mid \mathbf{x})$ directly or learn an optimal separating hyperplane ($\mathbf{w}^T \mathbf{x} + b$). They make no feature independence assumptions, allowing them to assign strong, correlated positive weights to decisive smishing tokens (`urltoken`, `currencytoken`) that easily override conversational filler vocabulary.
+2. **Decision Boundary Regularization:**
+   - Linear SVM maximizes the soft-margin distance ($2 / \|\mathbf{w}\|$), optimizing boundary resilience against borderline samples and yielding the highest recall (lowest FN = 11).
+   - Logistic Regression with $L_2$ penalty ($C=10.0$) optimizes smooth log-loss, preventing extreme parameter weights and achieving a perfect boundary separation on authentic messages (0 FP).
+3. **Event Space Structure:**
+   - Multinomial NB uses token frequency counts, which can be manipulated if a spammer repeats non-spam words. Bernoulli NB evaluates binary presence, preventing frequency manipulation from distorting probabilities.
+
+#### RQ6: Does TF-IDF provide effective features for SMS classification?
+**Yes, but with important nuances dictated by text length:**
+1. **Effective for Sublinear Scaling:** TF-IDF with sublinear scaling ($\text{TF} = 1 + \log(f)$) dampens high-frequency promotional terms and prevents vector distortion, producing our **Validation Champion (TF-IDF + Bernoulli NB)** with 98.55% accuracy and only 1 false positive (0.11% false alarm rate).
+2. **Why CountVectorizer Edge-Beat TF-IDF on Linear Models:**
+   - For Logistic Regression, CountVectorizer achieved $F_1 = 95.08\%$ vs. TF-IDF's $93.83\%$.
+   - For Linear SVM, CountVectorizer achieved $F_1 = 94.74\%$ vs. TF-IDF's $92.80\%$.
+   - *Theoretical Reason:* SMS messages are character-bounded (160 characters, average ~15 words). In short texts, virtually all words occur only once ($f=1$). Unlike long news articles where Inverse Document Frequency (IDF) smooths out frequent paragraph filler, in sparse short messages, IDF downweighting slightly compresses the margin of rare spam cues. Discrete n-gram frequencies preserve sharp binary indicator boundaries.
+3. **Mathematical Invariance in Bernoulli NB:** For Bernoulli Naive Bayes, TF-IDF and CountVectorizer yielded **identical metrics** (98.55% Accuracy, 93.83% $F_1$, 1 FP), demonstrating that true Boolean binarization ($x_{ij} \in \{0, 1\}$) renders term-frequency weighting mathematically invariant.
 
 ---
 
