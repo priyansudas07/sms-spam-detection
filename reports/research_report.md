@@ -211,7 +211,30 @@ Authoritative reference: Robert G. de Luna et al., *Proc. 2023 IEEE Region 10 Co
 
 ---
 
-## 12. Conclusion & Future Scope
+## 12. Multi-Tier Hybrid Smishing Defense Architecture & Concept-Drift Case Study
+
+### 12.1 The Concept Drift Phenomenon in Telecommunication Fraud
+The SMS Spam Collection benchmark represents telecommunications fraud from 2011, characterized predominantly by overt commercial telemarketing, premium ringtone subscriptions, and lottery prizes (e.g., *winner, claim, cash, prize*). In contemporary threat landscapes (2024–2026), adversaries employ **concept-drift evasion tactics**—notably package delivery alerts (e.g., USPS, FedEx, DHL, Evri), banking fraud warnings, and redelivery fee extortion.
+
+**Case Study Test Vector:**
+> *"USPS Notice: Your package could not be delivered today due to an incorrect house number. Please update your delivery address and pay the $1.99 redelivery fee at http://usps-tracking-portal-update.com within 12 hours."*
+
+When evaluated on this real-world adversary sample:
+1. **Generative Model Degradation (Bernoulli Naive Bayes):** Classifies the message as **HAM** ($P(\text{Spam}) = 0.8\%$). In the historical corpus, terms such as `today`, `house`, `number`, `address`, and `delivered` correlate overwhelmingly with legitimate personal messages. Under Bernoulli Naive Bayes, the absence of historical spam tokens incurs a multiplicative non-occurrence penalty:
+   $$\prod_{j: x_j=0} (1 - P(w_j \mid \text{Spam}))$$
+   This suppresses the single `urltoken` feature and generates a false negative.
+2. **Discriminative Resilience (Linear SVM & Logistic Regression):** Correctly classifies the message as **SPAM** ($P(\text{Spam}) = 99.2\%$ and $93.6\%$ respectively). Linear models compute additive hyperplanes:
+   $$f(\mathbf{x}) = \sum_{j} w_j x_j + b$$
+   Large positive weights on high-entropy indicators (`urltoken`, `fee`) decisively tilt the decision boundary toward SPAM, regardless of conversational vocabulary.
+
+### 12.2 Two-Tier Defense Architecture
+To reconcile historical academic benchmark integrity with operational security, SIGNAL incorporates a dual-tier architecture:
+- **Tier 1 (Supervised ML Classifiers):** Rigorous $2 \times 4$ factorial pipelines operating strictly on natural token n-grams and Platt-calibrated margins.
+- **Tier 2 (Smishing Heuristic Inspector & Weighted Consensus):** A real-time pattern analyzer (`src/smishing_heuristics.py`) detecting compound smishing vectors (hyperlink + monetary fee demand + urgency expiration). Discriminative models are assigned higher consensus weights (Linear SVM: 1.8–2.2, Logistic Regression: 2.0, Naive Bayes: 0.8–1.0). When compound threats are verified, an adaptive Bayesian boost prevents unweighted generative dilution, flipping the ensemble verdict to **SPAM DETECTED (84.25% confidence)** while maintaining 0% false alarms on legitimate traffic.
+
+---
+
+## 13. Conclusion & Future Scope
 
 This investigation established that traditional linear and probabilistic classifiers achieve high effectiveness in SMS spam detection without requiring computationally prohibitive deep learning architectures. By enforcing zero data leakage, true multivariate Bernoulli event binarization, semantic token substitution, and training-driven cross-validation selection, we demonstrated that **Bernoulli Naive Bayes** and **Logistic Regression** deliver near-flawless precision (0 to 1 false alarms out of 904 legitimate texts) on authentic imbalanced traffic.
 

@@ -57,6 +57,7 @@ Automated spam classification in cellular networks presents fundamental methodol
 - **5-Regime Preprocessing Ablation:** Empirical evidence demonstrating why semantic token substitution (`urltoken`, `currencytoken`) outperforms aggressive text stripping.
 - **Factorial Experimental Matrix:** 8 distinct combinations evaluated under identical stratified partitions.
 - **Dual Model Profiling:** Clear reporting distinguishing the **Training Validation Champion** from the **Peak Observed Test Score**.
+- **Tier-2 Hybrid Smishing Defense Layer:** Real-time multi-vector pattern scanner (`src/smishing_heuristics.py`) detecting unverified hyperlinks, monetary fee extortion, manufactured urgency deadlines, and postal/courier impersonation lures, integrated with an empirical reliability-weighted consensus ensemble.
 - **8-Panel Confusion Matrix Visual Grid:** Complete transparency reporting True Negatives, False Positives, Missed Spam, and Blocked Spam.
 - **SIGNAL Streamlit Workstation:** 5-page interactive dashboard (Message Analyzer, Model Performance, Dataset Explorer, Research Comparison, About Project).
 - **Publication-Ready Artifacts:** Automatically generated 300 DPI comparative charts and a formal 7-page academic PDF report.
@@ -338,8 +339,11 @@ streamlit run app.py
 
 1. **Message Analyzer (`Primary Workspace`):**
    - Real-time SMS classification with immediate threat assessment (**SPAM DETECTED** vs. **PREDICTED HAM**).
-   - Interactive dropdowns to toggle between both feature extractors and all four ML models.
-   - Preset realistic test cases: Banking urgent smishing, lottery cash claim, legitimate peer meeting, institutional circular.
+   - Interactive dropdowns to toggle between both feature extractors, all four ML models, and the **8-Model Weighted Consensus Ensemble**.
+   - **Hybrid Smishing Defense Guard:** Interactive toggle activating Tier-2 heuristic threat telemetry (`src/smishing_heuristics.py`).
+   - **Smishing Heuristic Inspector:** Real-time threat score (0–100%), risk classification badge, and active threat indicator breakdown.
+   - **Academic Concept-Drift Advisory:** Real-time guidance contextualizing why generative models miss conversational package lures and recommending discriminative linear alternatives.
+   - Preset realistic test cases: USPS package delivery smishing, banking urgent claim, lottery cash claim, peer meeting, institutional circular.
    - Preprocessing inspection drawer displaying exact regex token transformations and negation preservation.
    - Live inference latency benchmarking (measured in milliseconds at runtime).
    - Calibrated posterior probabilities using Platt scaling.
@@ -480,6 +484,7 @@ sms-spam-detection/
 │   ├── evaluation.py                   # Multi-metric evaluation and visual chart generation
 │   ├── dataset_and_preprocessing_audit.py # Dataset integrity audit & 5-regime ablation
 │   ├── paper_comparison.py             # IEEE TENCON 2023 benchmark & figure generation
+│   ├── smishing_heuristics.py          # Tier-2 multi-vector smishing scanner & weighted consensus engine
 │   ├── generate_pdf.py                 # Academic publication PDF report compiler
 │   └── create_notebook.py              # Reproducible research notebook generator
 │
@@ -517,6 +522,7 @@ The project relies on standard open-source Python scientific computing and machi
 2. **Contextual Syntactic Nuances:** Traditional n-gram representations (unigrams and bigrams) do not capture long-range contextual semantic dependencies as effectively as transformer-based attention models.
 3. **Adversarial Obfuscation:** Spammers frequently employ evasion tactics such as zero-width spaces, character homoglyphs (e.g., Cyrillic 'а' replacing Latin 'a'), or image-based texts that bypass standard character tokenizers.
 4. **Telecommunication Signaling Absence:** The classification relies solely on message payload text; carrier-level metadata such as SMS center (SMSC) timestamps, sender spoofing heuristics, and burst velocity are not available in static public corpora.
+5. **Temporal Horizon & Concept Drift:** The baseline UCI dataset was compiled in 2011, capturing historical spam patterns (lottery claims, ringtones). Modern conversational smishing (e.g., USPS package delivery lures with unverified payment URLs) lacks traditional spam keywords. This project explicitly mitigates this limitation via the **Tier-2 Smishing Heuristic Layer and Weighted Consensus Ensemble**, maintaining operational defense against evolving threats.
 
 ---
 

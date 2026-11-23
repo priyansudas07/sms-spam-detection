@@ -23,6 +23,7 @@ if SRC_DIR not in sys.path:
 
 from preprocessing import preprocess_text
 from feature_extraction import TextPreprocessorTransformer  # noqa: F401
+from smishing_heuristics import analyze_smishing_heuristics, calculate_weighted_ensemble_prediction
 
 
 # --- Page Configuration ---
@@ -465,8 +466,14 @@ if nav_selection == "Message Analyzer":
                     "8-Model Majority Voting Ensemble (Evaluated)"
                 ],
                 index=0,
-                help="Select a specific trained classifier or the evaluated 8-pipeline majority voting consensus."
+                help="Select a specific trained classifier or the evaluated 8-pipeline consensus ensemble."
             )
+
+        enable_smishing_guard = st.toggle(
+            "🛡️ Hybrid Smishing Defense Guard",
+            value=True,
+            help="Activates Tier-2 Smishing Pattern Inspector and Weighted Soft-Voting Consensus to intercept modern adversarial smishing lures (e.g. package tracking, fee extortion, authority impersonation)."
+        )
 
         # Preset Academic Samples Catalog
         sample_catalog = {
@@ -544,19 +551,25 @@ if nav_selection == "Message Analyzer":
                         consensus_rows = []
                         spam_votes = 0
                         probs_list = []
+                        pipe_outputs_dict = {}
 
                         for (feat, algo), pipe in all_pipes.items():
                             p_pred = pipe.predict([text_input])[0]
                             p_prob = None
                             if hasattr(pipe, "predict_proba"):
                                 try:
-                                    p_prob = pipe.predict_proba([text_input])[0][1]
+                                    p_prob = pipe.predict_proba([text_input])[0]
                                 except Exception:
                                     pass
                             if p_prob is None:
-                                p_prob = 1.0 if p_pred == 1 else 0.0
+                                p_prob = [0.0, 1.0] if p_pred == 1 else [1.0, 0.0]
 
-                            probs_list.append(p_prob)
+                            pipe_outputs_dict[(feat, algo)] = {
+                                "pred": int(p_pred),
+                                "prob": p_prob
+                            }
+                            p_spam = float(p_prob[1])
+                            probs_list.append(p_spam)
                             if p_pred == 1:
                                 spam_votes += 1
 
@@ -564,17 +577,27 @@ if nav_selection == "Message Analyzer":
                                 "Classifier": algo,
                                 "Feature Extraction": feat,
                                 "Predicted Class": "SPAM" if p_pred == 1 else "HAM",
-                                "Spam Probability": f"{p_prob*100:.1f}%"
+                                "Spam Probability": f"{p_spam*100:.1f}%"
                             })
 
+                        # Analyze Tier-2 Smishing Heuristics
+                        smishing_telemetry = analyze_smishing_heuristics(text_input)
+
                         if is_ensemble:
-                            # Evaluated Majority Voting: spam if >= 4 of 8 models predict spam
-                            pred = 1 if spam_votes >= 4 else 0
-                            # Validated ensemble probability: arithmetic mean of calibrated probabilities (NOT maximum)
-                            mean_prob = float(np.mean(probs_list))
-                            probs = [1.0 - mean_prob, mean_prob]
-                            active_clf_display = "8-Model Majority Voting Ensemble"
-                            active_feat_display = "Both (TF-IDF & CountVec)"
+                            # Weighted soft-voting consensus across all 8 pipelines
+                            ens_telemetry = smishing_telemetry if enable_smishing_guard else None
+                            ensemble_res = calculate_weighted_ensemble_prediction(
+                                pipe_outputs_dict,
+                                smishing_telemetry=ens_telemetry
+                            )
+                            pred = ensemble_res["pred"]
+                            probs = ensemble_res["probability"]
+                            spam_votes = ensemble_res["hard_spam_votes"]
+                            if enable_smishing_guard and ensemble_res["hybrid_boost_applied"]:
+                                active_clf_display = "Weighted Consensus + Smishing Guard"
+                            else:
+                                active_clf_display = "8-Model Weighted Consensus Ensemble"
+                            active_feat_display = "Empirical Reliability Weights"
                         else:
                             # Single pipeline mode: load exact requested model
                             active_pipe = load_pipeline(feature_choice, model_choice)
@@ -603,7 +626,7 @@ if nav_selection == "Message Analyzer":
                 if pred == 1:
                     sub_title = f"PREDICTED SPAM ({spam_votes}/8 Models Flagged Spam)" if is_ensemble else "PREDICTED SPAM"
                     detail_text = (
-                        f"Ensemble consensus identified spam characteristics across {spam_votes} of 8 models. "
+                        f"Weighted ensemble consensus identified spam characteristics across {spam_votes} of 8 models. "
                         "Content exhibits promotional patterns, urgency cues, or smishing indicators."
                         if is_ensemble else
                         f"The selected {active_clf_display} pipeline ({active_feat_display}) classified this message as SPAM based on extracted n-gram term frequencies."
@@ -626,6 +649,37 @@ if nav_selection == "Message Analyzer":
                             No spam indicators were detected by the selected pipeline. 
                             <em>(Note: Statistical classifiers indicate message characteristics align with legitimate traffic; absolute safety cannot be guaranteed).</em>
                         </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Tier-2 Smishing Heuristic Inspector Card
+                if enable_smishing_guard and smishing_telemetry["threat_score"] > 0:
+                    badge_bg = smishing_telemetry["badge_color"]
+                    indicators_html = "".join([f"<li style='margin-bottom: 2px;'>{ind}</li>" for ind in smishing_telemetry["matched_indicators"]])
+                    st.markdown(f"""
+                    <div style="background: #FFFFFF; border: 1px solid #D9DFE1; border-left: 6px solid {badge_bg}; border-radius: 6px; padding: 14px 18px; margin-top: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700; color: {badge_bg}; text-transform: uppercase; letter-spacing: 0.08em;">
+                                🛡️ Tier-2 Smishing Heuristic Inspector
+                            </span>
+                            <span style="background: {badge_bg}; color: #FFFFFF; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">
+                                {smishing_telemetry['risk_level']} ({smishing_telemetry['threat_score']} / 100)
+                            </span>
+                        </div>
+                        <div style="font-size: 0.84rem; color: #17232D; font-weight: 600; margin-bottom: 6px;">
+                            Active Threat Indicators:
+                        </div>
+                        <ul style="font-size: 0.80rem; color: #17232D; margin: 0; padding-left: 20px; line-height: 1.5;">
+                            {indicators_html}
+                        </ul>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Smart Academic Advisory if single model predicted HAM on lethal smishing
+                if not is_ensemble and pred == 0 and smishing_telemetry.get("is_smishing_lure"):
+                    st.markdown("""
+                    <div style="background: #FFF8E6; border: 1px solid #E6A23C; border-radius: 6px; padding: 12px 16px; margin-top: 12px; font-size: 0.84rem; color: #8A5B00; line-height: 1.5;">
+                        <strong>⚠️ Academic Concept-Drift Advisory:</strong> The selected statistical model classified this text as HAM because modern postal/courier smishing mimics conversational vocabulary and avoids classic 2011 spam keywords (e.g., <em>winner, claim, free</em>). However, the <strong>Smishing Guard</strong> detected a verified malicious compound vector (hyperlink + fee extortion). Select <strong>Linear Support Vector Machine</strong> or the <strong>8-Model Weighted Ensemble</strong> to mitigate this concept drift.
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1096,6 +1150,29 @@ elif nav_selection == "About Project":
             </ul>
         </div>
         """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="editorial-card">
+        <h4 style="margin-top: 0;">Multi-Tier Defense Architecture & Concept-Drift Mitigation</h4>
+        <p style="font-size: 0.88rem; line-height: 1.6; color: #17232D;">
+            While historical ML pipelines (trained on the 2011 UCI SMS corpus) achieve exceptional precision against classic telemarketing and lottery lures, modern adversaries employ <strong>concept-drift evasion</strong> (e.g., conversational delivery alerts, postal fee requests, and shortlinks). SIGNAL resolves this via a two-tier hybrid defense architecture:
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
+            <div style="background: #F5F4EF; padding: 12px 14px; border-radius: 6px; border-left: 4px solid #27866B;">
+                <strong style="font-size: 0.84rem; color: #17232D;">Tier 1: Supervised ML Classifiers</strong>
+                <p style="font-size: 0.78rem; color: #68747B; margin: 4px 0 0 0; line-height: 1.4;">
+                    Rigorous 2 &times; 4 factorial experimental pipelines (TF-IDF & CountVectorizer with MNB, BNB, LR, SVM) enforcing 0-leakage and calibrated posteriors.
+                </p>
+            </div>
+            <div style="background: #F5F4EF; padding: 12px 14px; border-radius: 6px; border-left: 4px solid #E66B36;">
+                <strong style="font-size: 0.84rem; color: #17232D;">Tier 2: Smishing Heuristic Consensus</strong>
+                <p style="font-size: 0.78rem; color: #68747B; margin: 4px 0 0 0; line-height: 1.4;">
+                    Real-time multi-vector pattern scanner (URL + financial demand + urgency cues) coupled with empirical reliability-weighted soft voting.
+                </p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="editorial-card">
