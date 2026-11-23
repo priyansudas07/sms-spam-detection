@@ -1,38 +1,37 @@
-# Mitigating Concept Drift and False-Alarm Asymmetry in Cellular SMS Fraud Detection: A Factorial Study and Two-Tier Defense Architecture
+# Comparative Evaluation of Machine Learning Algorithms and Feature Representations for SMS Spam Detection
 
-**Abstract**—Short Message Service (SMS) fraud and conversational smishing inflict severe economic damage and undermine trust in cellular telecommunication networks. Conventional machine learning countermeasures predominantly evaluate static, artificially balanced benchmarks, suffering from extreme false-alarm asymmetry and vulnerability to modern conversational concept drift. To overcome these operational vulnerabilities, this paper proposes a leak-free $2 \times 4$ factorial machine learning evaluation coupled with a Two-Tier Hybrid Smishing Defense Architecture. The framework integrates high-throughput linear classifiers with an automated regex-driven multi-vector threat inspector operating across adaptive security regimes. The end-to-end architecture is validated on the benchmark UCI SMS Spam Collection under its natural 7.04:1 class imbalance ($N=5,160$) using nested stratified 5-fold cross-validation, Wilson and bootstrap confidence intervals, paired McNemar significance tests, and adversarial perturbation stress tests. Empirical results demonstrate that regularized Logistic Regression achieves 98.84% accuracy, 95.08% $F_1$-score, and 100.00% precision (zero false alarms across 904 legitimate texts) with an inference throughput of 5,774.5 messages/second ($0.173\text{ ms/message}$) on commodity hardware, while the secondary heuristic tier sustains $>91\%$ recall under severe token evasion noise ($\epsilon = 0.50$). This architecture provides telecommunication operators with an empirically validated, wire-speed, and zero-false-alarm defense against emerging mobile fraud vectors.
+**Abstract**—Short Message Service (SMS) spam and fraudulent smishing remain pervasive threats to mobile cellular communication, inflicting financial losses and eroding subscriber trust. While machine learning offers an automated defense, prior studies frequently rely on synthetic or artificially balanced datasets (e.g., 60:40 resampling), which distort real-world base rates, conceal catastrophic false-alarm rates, and ignore short-text lexical sparsity. In this paper, we conduct a leak-free comparative evaluation of two primary feature representations—Sublinear Term Frequency-Inverse Document Frequency (TF-IDF) versus raw discrete CountVectorizer—across four foundational classifiers: Multinomial Naive Bayes, Bernoulli Naive Bayes, Logistic Regression, and Linear Support Vector Machines (SVM). To address conversational concept drift and adversarial token evasion, we augment the statistical models with a lightweight secondary heuristic inspection tier. The pipeline is validated on the benchmark UCI SMS Spam Collection under its natural 7.04:1 class imbalance ($N=5,160$) using nested stratified 5-fold cross-validation, Wilson score confidence intervals, paired McNemar hypothesis tests, and adversarial perturbation stress tests. Our findings show that CountVectorizer paired with regularized Logistic Regression delivers the highest overall test accuracy at 98.84% and an $F_1$-score of 95.08%, achieving 100.00% precision with zero false alarms across 904 legitimate texts. On single-core commodity hardware, this linear model sustains a wire-speed throughput of 5,774.5 messages per second ($0.173\text{ ms}$ per message) with a 146.4 KB binary, while the secondary heuristic tier preserves $>91\%$ recall under severe adversarial evasion noise ($\epsilon = 0.50$). This study confirms that carefully regularized classical architectures provide a viable, zero-false-alarm defense for real-time edge deployment.
 
-**Keywords**—Adversarial Robustness, Concept Drift, Machine Learning, Mobile Telecommunications, SMS Spam Detection, Two-Tier Defense.
+**Keywords**—Feature Representations, Machine Learning, Mobile Telecommunications, Model Evaluation, SMS Spam Detection, Statistical Testing.
 
 ---
 
 ## 1. Introduction
 
-Mobile cellular telecommunications networks form the critical backbone of global commerce, financial authorization, and interpersonal connectivity. Within this ecosystem, the Short Message Service (SMS) remains the most ubiquitous and trusted bearer channel worldwide, handling over 23 billion transmissions daily across diverse network topologies and device form factors [1]. Crucially, SMS messages achieve an unprecedented open rate exceeding 90%, with the vast majority of transmissions inspected by cellular subscribers within three minutes of delivery [2]. This extraordinary level of consumer trust and immediate engagement has transformed mobile cellular channels into primary attack vectors for automated unsolicited commercial marketing, financial phishing, identity theft, and malicious smishing campaigns.
+Short Message Service (SMS) continues to serve as an indispensable bearer channel across global telecommunications networks. Despite the proliferation of over-the-top (OTT) messaging applications such as WhatsApp and Telegram, SMS remains unique in its universal reach: it functions without mobile data plans, operates across all cellular handsets, and carries mission-critical transmissions including banking authorizations, one-time passwords (OTPs), and emergency carrier alerts [1]. Industry telemetry indicates that over 23 billion SMS transmissions occur daily worldwide, with subscribers reading more than 90% of incoming messages within three minutes of arrival [2]. This exceptional open rate and immediate consumer trust make SMS an extraordinarily attractive target for illicit marketing, identity theft, and targeted financial smishing campaigns.
 
-The technical challenge of filtering malicious SMS traffic is characterized by three fundamental domain constraints. First, real-world cellular message streams exhibit severe natural class imbalance, where legitimate subscriber exchanges (ham) outnumber fraudulent or spam messages by approximately seven to one [3]. Second, the 160-character transmission constraint enforces acute lexical sparsity, resulting in brief messages with an average length of fewer than 15 words where most discriminative terms occur with unit frequency ($f=1$) [4]. Third, telecommunication filtering exhibits extreme asymmetric operational costs: while missing an occasional spam message constitutes a minor annoyance (a false negative), erroneously dropping an authentic transactional one-time password (OTP), banking authorization, or critical personal communication (a false positive) destroys consumer trust and violates service level agreements [3]. Consequently, practical cellular firewalls must maintain near-zero false-alarm rates while operating within strict wire-speed latency bounds.
+Filtering mobile SMS traffic involves distinct technical hurdles that do not arise in conventional email filtering. First, cellular traffic displays severe natural class imbalance: in real-world network streams, legitimate communications (ham) vastly outnumber fraudulent transmissions by roughly seven to one [3]. Second, the standard 160-character transmission ceiling enforces acute lexical brevity. Most messages average fewer than 15 words, meaning almost every token appears with unit frequency ($f=1$) and provides limited statistical context [4]. Third, telecommunication filtering carries an extreme asymmetric cost. Missing a spam text is a minor annoyance, but falsely blocking an authentic banking OTP, flight update, or personal message violates carrier service agreements and destroys subscriber trust [3]. Consequently, telecommunication filters must maintain a false-alarm rate near zero while meeting wire-speed throughput requirements.
 
-Prior research in cellular spam detection spans rule-based filtering, classical shallow machine learning, and deep neural architectures. Early approaches utilized static keyword heuristics, blacklists, and Bayesian filters, which proved computationally lightweight but brittle against lexical paraphrasing [5]. Seminal works by Almeida et al. [5] and subsequent investigations by de Luna et al. [6] applied algorithms such as Multinomial Naive Bayes, Support Vector Machines (SVM), and Decision Trees to standardized corpora. More recently, transformer-based language models, including BERT and RoBERTa, have demonstrated strong academic accuracy scores on benchmark datasets [7], [8]. However, transformer architectures introduce substantial computational latency (frequently exceeding $25\text{ ms}$ per message), demand excessive graphics processing memory, and incur a $140\times$ throughput penalty compared to optimized linear classifiers, rendering them impractical for wire-speed inline deployment at telecommunication edge gateways.
+A wide variety of techniques have been explored for cellular spam detection. Early implementations relied on rule-based heuristics, sender blacklists, and basic Bayesian filters [5]. Seminal work by Almeida et al. [5] and later studies by de Luna et al. [6] applied standard machine learning algorithms—such as Naive Bayes, Decision Trees, and Support Vector Machines—to benchmark corpora. In recent years, transformer-based language models such as BERT and DistilBERT have achieved strong academic benchmark scores [7], [8]. However, deep neural networks require substantial GPU memory and introduce considerable inference latency, often exceeding $25\text{ ms}$ per message [7]. This represents a $140\times$ throughput penalty compared to lightweight linear models, making transformer architectures impractical for inline edge inspection on carrier gateways.
 
-Despite extensive study, critical research gaps persist in published methodologies. A predominant limitation in existing literature is the pervasive reliance on synthetic or artificially balanced subsets (e.g., 60:40 or 50:50 undersampling), which distorts posterior probability estimates, introduces massive sample selection bias, and masks real-world false-alarm rates [6]. Furthermore, many classical implementations exhibit severe methodological oversights, such as fitting vectorizers across the entire dataset prior to splitting (causing data snooping) or executing continuous term frequency-inverse document frequency (TF-IDF) feature transformations on Bernoulli Naive Bayes without enforcing Boolean indicator binarization [6]. Crucially, existing static benchmarks fail to account for modern concept drift, wherein contemporary smishing attacks abandon historical promotional lottery vocabulary in favor of deceptive multi-vector lures such as package redelivery fees and urgent account suspensions.
+A critical review of the literature reveals several persistent methodological gaps. Foremost among them is the widespread use of artificially balanced datasets, such as 60:40 or 50:50 undersampling [6]. Artificially balancing the training data distorts posterior probabilities, artificially inflates apparent recall, and obscures the real-world false-alarm rate on legitimate traffic. Furthermore, several published studies exhibit subtle data leakage, such as fitting tokenizers across the full corpus prior to train-test splitting, or failing to binarize feature inputs when evaluating Bernoulli Naive Bayes on continuous TF-IDF scores [6]. Finally, static historical benchmarks fail to capture concept drift, where modern scammers shift from obvious lottery keywords to conversational package-delivery and account-security lures [9].
 
-To resolve these operational and methodological vulnerabilities, this paper proposes a rigorous, leak-free $2 \times 4$ factorial benchmark combined with a real-time Two-Tier Hybrid Smishing Defense Architecture. The primary contributions of this paper are formulated as follows:
+To address these limitations, we present a rigorous, leak-free factorial evaluation of two feature extraction strategies (Sublinear TF-IDF versus CountVectorizer) across four foundational classifiers (Multinomial Naive Bayes, Bernoulli Naive Bayes, Logistic Regression, and Linear SVM). The core contributions of our work are:
+- **Contribution 1:** We conduct a leak-free $2 \times 4$ factorial benchmark under natural 7.04:1 class imbalance, supported by a 5-regime feature ablation that isolates the contribution of regex tokenization, stemming, and stopword removal.
+- **Contribution 2:** We perform paired McNemar statistical hypothesis testing and calculate 95% Wilson score and bootstrap confidence intervals, alongside single-core CPU throughput profiling ($5,774.5\text{ msgs/s}$) and model footprint measurements ($146.4\text{ KB}$).
+- **Contribution 3:** We evaluate a two-tier defense mechanism that combines statistical linear models with a lightweight heuristic inspector, demonstrating 100.00% precision on clean traffic and sustained $>91\%$ recall under adversarial evasion noise ($\epsilon \in [0.10, 0.50]$).
 
-- **Contribution 1:** A leak-free factorial evaluation of two feature representations (Sublinear TF-IDF vs. CountVectorizer) across four foundational classifiers (Multinomial Naive Bayes, Bernoulli Naive Bayes, Logistic Regression, and Linear SVM) under natural 7.04:1 class imbalance, supported by a 5-regime feature ablation isolating token normalization, stemming, and stopword filtering.
-- **Contribution 2:** A rigorous statistical and operational characterization comprising exact McNemar paired hypothesis tests, 95% Wilson Score and bootstrap confidence intervals, and single-core carrier edge profiling achieving 5,774.5 messages/second with a compact 146.4 KB model binary.
-- **Contribution 3:** A Two-Tier Hybrid Smishing Defense Architecture that pairs ultra-low-latency statistical machine learning with an automated regex-driven multi-vector threat inspector, achieving 100.00% precision (zero false positives) on legitimate traffic while maintaining $>91\%$ recall under adversarial evasion noise ($\epsilon \in [0.10, 0.50]$) and modern concept drift.
-
-The remainder of this paper is organized as follows. Section 2 presents the system description, preprocessing pipeline, and formal mathematical formulations. Section 3 details the proposed Two-Tier Hybrid Smishing Defense Architecture. Section 4 provides comprehensive empirical results, answers the six central research questions, evaluates adversarial robustness, and contrasts findings against published conference benchmarks. Finally, Section 5 concludes the paper.
+The remainder of this paper is structured as follows. Section 2 details the system architecture, mathematical formulations, and experimental parameters. Section 3 outlines the two-tier defense methodology. Section 4 presents our empirical results, answers the six research questions, analyzes edge throughput, and compares our findings against published literature. Section 5 concludes the paper.
 
 ---
 
 ## 2. System Description and Formulation
 
-The overall schematic layout of the proposed cellular SMS NLP and classification pipeline is illustrated in Fig. 1. Inbound cellular traffic undergoes systematic text normalization, token transformation, and sparse vector representation before being evaluated by the classification engine under leak-free nested validation. The operational parameters and hyperparameters adopted throughout this investigation are summarized in Table 1.
+Fig. 1 illustrates the overall layout of our cellular SMS processing and classification pipeline. Inbound messages pass through deterministic text normalization, morphological stemming, and sparse vectorization before being evaluated by the classification algorithms. Table 1 summarizes the operational parameters and hyperparameters used across all experiments.
 
 ![Fig. 1 Overall schematic layout of the proposed system](figures/fig1_pipeline_schematic.png)
 
-**Fig. 1 Overall schematic layout of the proposed cellular SMS NLP and classification pipeline.**
+**Fig. 1. Overall schematic layout of the proposed cellular SMS NLP and classification pipeline.**
 
 Table 1. System parameters and pipeline hyperparameters used for the experimental study
 
@@ -52,92 +51,92 @@ Table 1. System parameters and pipeline hyperparameters used for the experimenta
 
 ### A. Text Normalization and Lexical Tokenization Pipeline
 
-Inbound raw cellular messages contain diverse alphanumeric symbols, specialized punctuation, and volatile entities such as hyperlinks and international telephone sequences. To eliminate arbitrary variance while preserving critical fraudulent cues, a deterministic regex transformation mapping is applied:
+Raw cellular messages contain diverse alphanumeric strings, informal punctuation, and volatile entities such as web addresses and international phone numbers. To reduce vocabulary fragmentation while preserving discriminative fraud markers, we apply a deterministic regular expression mapping:
 
 $$T(w) = \begin{cases} \texttt{urltoken}, & w \in \mathcal{U} \\ \texttt{currencytoken}, & w \in \mathcal{C} \\ \texttt{phonenumber}, & w \in \mathcal{P} \\ \text{stem}(w), & \text{otherwise} \end{cases} \qquad (1)$$
 
-where $\mathcal{U}$ represents the regular expression set matching protocol schemes and domain shortlinks (`https?://\S+|www\.\S+`), $\mathcal{C}$ denotes currency symbols and monetary units (`[$£€₹]`), $\mathcal{P}$ isolates continuous numeric digit sequences of length four or greater, and $\text{stem}(w)$ denotes the Porter morphological stemming function yielding canonical word roots. Following tokenization, standard English grammatical stopwords are excised to restrict the feature vocabulary to informative lexical structures.
+where $\mathcal{U}$ matches web protocols and shortlinks (`https?://\S+|www\.\S+`), $\mathcal{C}$ isolates currency symbols (`[$£€₹]`), $\mathcal{P}$ matches numeric sequences of length four or greater, and $\text{stem}(w)$ denotes the Porter stemming algorithm. Following tokenization, standard English stopwords are removed to focus the feature vocabulary on meaningful content words.
 
 ### B. Sublinear Term Weighting and Event Space Formulation
 
-To evaluate the impact of term weighting in character-bounded text, two distinct vector representations are extracted from the normalized vocabulary $V$. For term frequency-inverse document frequency (TF-IDF) representation, a sublinear scaling function is employed:
+To evaluate the effect of term weighting on short messages, we extract two feature spaces from the normalized vocabulary $V$. For term frequency-inverse document frequency (TF-IDF), we apply sublinear scaling:
 
 $$\mathrm{TF}(t, d) = \begin{cases} 1 + \log(f_{t, d}), & f_{t, d} > 0 \\ 0, & \text{otherwise} \end{cases} \qquad (2)$$
 
-where $f_{t, d}$ denotes the raw count of term $t$ in document $d$. The sublinear logarithmic formulation prevents high-frequency promotional repetitions from dominating vector magnitudes. The smoothed inverse document frequency across the training corpus $\mathcal{D}_{\mathrm{train}}$ is formulated as:
+where $f_{t, d}$ represents the raw frequency of token $t$ in message $d$. This logarithmic scaling prevents repeated promotional words from distorting document lengths. The smoothed inverse document frequency across the training set $\mathcal{D}_{\mathrm{train}}$ is defined as:
 
 $$\mathrm{IDF}(t, \mathcal{D}_{\mathrm{train}}) = \log\left(\frac{1 + |\mathcal{D}_{\mathrm{train}}|}{1 + n_t}\right) + 1 \qquad (3)$$
 
-where $|\mathcal{D}_{\mathrm{train}}|$ represents the total training corpus cardinality ($N=4,128$) and $n_t$ represents the document frequency of token $t$.
+where $|\mathcal{D}_{\mathrm{train}}|$ is the number of training messages ($N=4,128$) and $n_t$ is the number of training documents containing token $t$.
 
-In the generative probabilistic domain, the Multivariate Bernoulli Naive Bayes model operates strictly over an indicator vector space $\mathbf{x}_i \in \{0, 1\}^{|V|}$, where each feature expresses Boolean event existence rather than frequency. The conditional document likelihood under class $c \in \{\text{Ham}, \text{Spam}\}$ is expressed as:
+For Bernoulli Naive Bayes, the event model operates on a strictly binary vector space $\mathbf{x}_i \in \{0, 1\}^{|V|}$, where each dimension indicates the presence or absence of a word. The class-conditional likelihood for message $\mathbf{x}_i$ given class $c \in \{\text{Ham}, \text{Spam}\}$ is:
 
 $$P(\mathbf{x}_i \mid y = c) = \prod_{j=1}^{|V|} p_{cj}^{x_{ij}} (1 - p_{cj})^{1 - x_{ij}} \qquad (4)$$
 
-where $p_{cj}$ denotes the Laplace-smoothed parameter estimate:
+where $p_{cj}$ is estimated with Laplace smoothing:
 
 $$p_{cj} = \frac{\sum_{k: y_k = c} x_{kj} + \alpha}{N_c + 2\alpha} \qquad (5)$$
 
-with smoothing parameter $\alpha = 1.0$ and class cardinality $N_c$. Enforcing the binary mapping $x_{ij} = \mathbb{I}(w_j \in d_i)$ is mathematically vital; failing to binarize TF-IDF continuous values results in erroneous negative exponent calculations and degrades probabilistic boundaries.
+with smoothing parameter $\alpha = 1.0$ and class count $N_c$. Setting $x_{ij} = \mathbb{I}(w_j \in d_i)$ is mathematically essential. If continuous TF-IDF scores are passed to Bernoulli Naive Bayes without binarization, fractional feature values produce erroneous negative exponent calculations and degrade classification performance.
 
 ### C. Discriminative Hyperplane and Log-Loss Optimization
 
-Discriminative models construct functional decision boundaries directly without modeling feature generative distributions. The Linear Support Vector Machine (SVM) identifies the maximum-margin hyperplane separating classes by solving the primal optimization problem:
+Unlike generative models that estimate joint probabilities, discriminative models find boundary surfaces directly. Linear Support Vector Machines (SVM) maximize the margin between classes by solving:
 
 $$\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2} \|\mathbf{w}\|_2^2 + C \sum_{i=1}^N \xi_i \quad \text{s.t.} \quad y_i (\mathbf{w}^T \mathbf{x}_i + b) \ge 1 - \xi_i, \quad \xi_i \ge 0 \qquad (6)$$
 
-where $\mathbf{w} \in \mathbb{R}^{|V|}$ denotes the hyperplane normal vector, $b$ represents the scalar bias, $\xi_i$ denotes the slack variable penalizing margin violations, and $C > 0$ governs the trade-off between margin width and empirical error.
+where $\mathbf{w} \in \mathbb{R}^{|V|}$ is the weight vector, $b$ is the bias term, $\xi_i$ represents the margin slack for misclassified points, and $C > 0$ balances margin maximization against classification errors.
 
-Conversely, $L_2$-regularized Logistic Regression models the posterior class probability via the logistic sigmoid function, minimizing the penalized empirical log-loss:
+$L_2$-regularized Logistic Regression models the posterior class probability via the logistic function, minimizing the penalized empirical log-loss:
 
 $$\mathcal{L}(\mathbf{w}, b) = \frac{1}{2C} \|\mathbf{w}\|_2^2 + \sum_{i=1}^N \log\left(1 + \exp\left(-y_i (\mathbf{w}^T \mathbf{x}_i + b)\right)\right) \qquad (7)$$
 
-with class labels $y_i \in \{-1, +1\}$. Tuning $C=10.0$ relaxes structural penalties, permitting the model to assign strong, unconstrained positive weights to decisive smishing indicators while establishing a zero-false-alarm margin on authentic subscriber exchanges.
+with labels $y_i \in \{-1, +1\}$. Setting $C=10.0$ relaxes over-penalization, allowing the model to assign strong positive weights to clear fraud indicators while maintaining a safe margin on legitimate texts.
 
 ---
 
 ## 3. Proposed Method (Two-Tier Hybrid Architecture)
 
-Conventional standalone statistical models, while exceptionally rapid, remain vulnerable to concept drift and adversarial token obfuscation. To guarantee robust cellular protection, this paper proposes the Two-Tier Hybrid Smishing Defense Architecture shown in Fig. 2.
+Standalone statistical models perform exceptionally well on in-distribution text, but they can struggle when faced with concept drift or deliberate token obfuscation. To provide robust protection, we integrate a two-tier hybrid architecture as depicted in Fig. 2.
 
 ![Fig. 2 Schematic block diagram of the proposed method](figures/fig2_two_tier_defense.png)
 
-**Fig. 2 Schematic block diagram of the proposed Two-Tier Hybrid Smishing Defense Architecture.**
+**Fig. 2. Schematic block diagram of the proposed Two-Tier Hybrid Smishing Defense Architecture.**
 
-The architecture decouples inline processing into two coordinated operational layers:
-1. **Tier-1 (Statistical ML Engine):** A high-throughput linear classifier (CountVectorizer + Logistic Regression or TF-IDF + Bernoulli Naive Bayes) executing in sub-millisecond time ($0.173\text{ ms}$) to evaluate baseline message vocabulary against the trained corpus distribution.
-2. **Tier-2 (Smishing Heuristic Inspector):** An automated multi-vector heuristic parser executing deterministic regex evaluations for high-threat conversational smishing patterns that evade historical n-gram vocabularies.
+The architecture separates message inspection into two complementary stages:
+1. **Tier-1 (Statistical ML Engine):** A high-throughput linear classifier (CountVectorizer + Logistic Regression or TF-IDF + Bernoulli Naive Bayes) that runs in $0.173\text{ ms}$, scoring messages against the learned vocabulary distribution.
+2. **Tier-2 (Smishing Heuristic Inspector):** A rule-based parser that executes targeted regular expressions to spot modern phishing lures that evade statistical n-gram counters.
 
-The multi-vector threat score $S_{\mathrm{smish}}(M)$ for an inbound message $M$ is formulated as an additive weighted combination:
+The heuristic threat score $S_{\mathrm{smish}}(M)$ for message $M$ is computed as:
 
 $$S_{\mathrm{smish}}(M) = \sum_{k=1}^K w_k \cdot \mathbb{I}_k(M) \qquad (8)$$
 
-where $\mathbb{I}_k(M) \in \{0, 1\}$ represents the indicator activation of threat vector $k$, and $w_k$ denotes the empirical risk weight. Specifically, the framework isolates four critical attack vectors:
-- **External Hyperlink Vector ($w_{\mathrm{url}} = 2.5$):** Detects unverified Uniform Resource Identifiers (URIs), IP addresses, and suspicious top-level domains (`.xyz`, `.top`, `.info`).
-- **Financial Demand Vector ($w_{\mathrm{pay}} = 2.0$):** Detects monetary requests, currency symbols, redelivery fees, and payment settlement keywords.
-- **Manufactured Urgency Vector ($w_{\mathrm{urg}} = 1.5$):** Identifies artificial deadlines, account suspension notices, and time-decay pressures (`within 24 hours`, `final notice`, `immediate action`).
-- **Authority Impersonation Vector ($w_{\mathrm{imp}} = 2.0$):** Detects targeted mimicry of postal couriers (USPS, FedEx, DHL, Royal Mail) and financial institutions (Chase, Wells Fargo, IRS, PayPal).
+where $\mathbb{I}_k(M) \in \{0, 1\}$ indicates the presence of threat pattern $k$, and $w_k$ is its designated weight. We focus on four high-risk indicators:
+- **External Hyperlink ($w_{\mathrm{url}} = 2.5$):** Detects raw URLs, IP addresses, and suspicious top-level domains (`.xyz`, `.top`, `.info`).
+- **Financial Demand ($w_{\mathrm{pay}} = 2.0$):** Identifies payment requests, currency symbols, and fee-collection phrasing.
+- **Manufactured Urgency ($w_{\mathrm{urg}} = 1.5$):** Spots artificial deadlines and account suspension threats (`within 24 hours`, `final notice`, `immediate action`).
+- **Authority Impersonation ($w_{\mathrm{imp}} = 2.0$):** Catches mimicry of postal couriers (USPS, FedEx, DHL) and major banks (Chase, Wells Fargo, PayPal).
 
-To aggregate predictions under edge operating regimes, a reliability-weighted soft-voting probability consensus is formulated:
+To aggregate individual model predictions, a weighted soft-voting consensus probability is computed:
 
 $$P_{\mathrm{consensus}}(\text{Spam} \mid M) = \frac{\sum_{m=1}^8 \omega_m \cdot P_m(\text{Spam} \mid M)}{\sum_{m=1}^8 \omega_m} \qquad (9)$$
 
-where $P_m(\text{Spam} \mid M)$ denotes the posterior probability generated by pipeline $m$, and $\omega_m$ denotes its empirical validation $F_1$-score weight derived during cross-validation.
+where $P_m(\text{Spam} \mid M)$ is the posterior probability from pipeline $m$, and $\omega_m$ is its empirical validation $F_1$-score weight.
 
-The hybrid architecture operates in two distinct operational modes:
-1. **Normal In-Distribution Traffic Mode ($S_{\mathrm{smish}} < \tau_{\mathrm{threat}}$):** The message exhibits no active multi-vector smishing patterns. The high-speed Tier-1 statistical classifier provides the primary verdict, routing legitimate subscriber messages directly with zero false-alarm overhead.
-2. **High-Threat Smishing Verification Mode ($S_{\mathrm{smish}} \ge \tau_{\mathrm{threat}}$, with $\tau_{\mathrm{threat}} = 4.0$):** Activated when an inbound message presents compound threat indicators (e.g., postal courier impersonation combined with external payment links). The Tier-2 arbiter overrides uncertain Tier-1 scores, intercepting zero-day smishing attempts even when obfuscated vocabulary bypasses static token counters.
+The architecture operates in two practical modes:
+1. **Normal Traffic Mode ($S_{\mathrm{smish}} < \tau_{\mathrm{threat}}$):** The message contains no suspicious compound patterns. The fast Tier-1 classifier provides the final verdict, passing authentic subscriber texts immediately.
+2. **High-Threat Smishing Mode ($S_{\mathrm{smish}} \ge \tau_{\mathrm{threat}}$, with $\tau_{\mathrm{threat}} = 4.0$):** Triggered when multiple risk factors coincide (e.g., courier name paired with a payment link). The Tier-2 arbiter intercepts the attack, preventing zero-day lures from slipping past statistical counters.
 
-The principal advantages of the proposed two-tier method are:
-- **Advantage 1 (Elimination of Asymmetric False Alarms):** Preserves 100.00% precision on clean conversational subscriber traffic, guaranteeing that vital transactional texts are never dropped.
-- **Advantage 2 (Resilience Against Modern Concept Drift):** Successfully intercepts modern package redelivery and banking fraud campaigns that share zero lexical overlap with historical 2011 spam corpora.
-- **Advantage 3 (Wire-Speed Edge Feasibility):** Operates at an aggregate latency of less than $0.20\text{ ms}$ per message with a memory footprint below $1.5\text{ MB}$, allowing seamless inline deployment on carrier base stations and edge security gateways.
+Key operational benefits include:
+- **Zero False-Alarm Rate:** Preserves 100.00% precision on legitimate traffic, ensuring critical transactional texts are never dropped.
+- **Resilience to Concept Drift:** Accurately flags modern delivery and banking scams that share little vocabulary with historical 2011 spam.
+- **Wire-Speed Feasibility:** Operates in under $0.20\text{ ms}$ per message with less than $1.5\text{ MB}$ of memory, making it easy to deploy on resource-constrained carrier edge hardware.
 
 ---
 
 ## 4. Results and Discussion
 
-The empirical evaluation was conducted using Python 3.10 and scikit-learn 1.4 on an Intel x86-64 single-core execution platform. The five experimental test scenarios evaluated in this study are summarized in Table 2.
+All experiments were executed on an Intel x86-64 single-core testbench using Python 3.10 and scikit-learn 1.4. Table 2 outlines the five experimental scenarios evaluated.
 
 Table 2. Test scenarios considered for performance evaluation
 
@@ -151,11 +150,11 @@ Table 2. Test scenarios considered for performance evaluation
 
 ### Case I – Baseline Factorial Evaluation on Clean Traffic
 
-The comparative performance across all eight factorial pipelines on the untouched holdout test partition ($N=1,032$; 904 Ham, 128 Spam) is illustrated in Fig. 3, with comprehensive metrics detailed in Table 3.
+Fig. 3 illustrates the comparative performance of all eight factorial pipelines on the untouched holdout test partition ($N=1,032$; 904 Ham, 128 Spam). Table 3 provides the complete numerical results.
 
 ![Fig. 3 Performance comparison of the proposed method and the benchmark methods under Case I](figures/model_comparison_barchart.png)
 
-**Fig. 3 Performance comparison across the $2 \times 4$ factorial pipelines on the natural test partition ($N=1,032$).**
+**Fig. 3. Performance comparison across the $2 \times 4$ factorial pipelines on the natural test partition ($N=1,032$).**
 
 Table 3. Empirical performance metrics across the $2 \times 4$ factorial experimental matrix ($N=1,032$)
 
@@ -170,42 +169,42 @@ Table 3. Empirical performance metrics across the $2 \times 4$ factorial experim
 | **Test Peak Champion** | **CountVectorizer** | **Logistic Regression** | **0.9884** | **1.0000** | **0.9062** | **0.9508** | **0** | **12** |
 | Baseline Factorial 8 | CountVectorizer | Linear SVM | 0.9874 | 0.9832 | 0.9141 | 0.9474 | 2 | 11 |
 
-#### Empirical Analysis of the Six Core Research Questions (RQ1 – RQ6)
+#### Answers to the Six Core Research Questions (RQ1 – RQ6)
 
-The empirical data directly resolves the six fundamental research questions formulated for cellular spam classification:
+Our experimental data provides direct answers to the six central research questions:
 
 **RQ1: Which classifier achieved the highest accuracy?**
-**CountVectorizer + Logistic Regression** achieved the highest overall classification accuracy on the untouched test partition at **98.84%** (1,020 out of 1,032 test messages correctly classified). It was closely followed by CountVectorizer + Linear SVM at **98.74%** (1,019/1,032). Bernoulli Naive Bayes (under both TF-IDF and CountVectorizer) and TF-IDF + Logistic Regression tied for third place at **98.55%** (1,017/1,032). During 5-fold cross-validation on the training partition ($N=4,128$), **TF-IDF + Bernoulli Naive Bayes** attained the highest validation accuracy of **98.40% ± 0.38%**, proving exceptional stability across random data folds.
+**CountVectorizer + Logistic Regression** produced the highest overall test accuracy at **98.84%** (correctly classifying 1,020 of the 1,032 test messages). CountVectorizer + Linear SVM followed closely at **98.74%** (1,019/1,032). Both vectorizer variants of Bernoulli Naive Bayes and TF-IDF + Logistic Regression tied for third place at **98.55%** (1,017/1,032). During 5-fold cross-validation on the training set ($N=4,128$), **TF-IDF + Bernoulli Naive Bayes** achieved the highest validation accuracy of **98.40% ± 0.38%**, demonstrating consistent cross-fold stability.
 
 **RQ2: Which classifier achieved the highest F1-score?**
-**CountVectorizer + Logistic Regression** achieved the highest test positive-class $F_1$-score of **95.08%** (0.9508), followed by CountVectorizer + Linear SVM at **94.74%**. Bernoulli Naive Bayes achieved **93.83%** across both vectorization methods. On the training cross-validation splits, **TF-IDF + Bernoulli Naive Bayes** achieved the peak Mean CV $F_1$-score of **93.69% ± 1.77%**, establishing its status as the leak-free **Validation Champion**.
+**CountVectorizer + Logistic Regression** achieved the highest test positive-class $F_1$-score at **95.08%** (0.9508), with CountVectorizer + Linear SVM taking second place at **94.74%**. Bernoulli Naive Bayes scored **93.83%** under both vectorization methods. On the training cross-validation splits, **TF-IDF + Bernoulli Naive Bayes** reached the highest Mean CV $F_1$-score of **93.69% ± 1.77%**, which justified its selection as our primary **Validation Champion**.
 
 **RQ3: Which classifier detected spam most effectively?**
-In telecommunications engineering, detection efficacy must be evaluated against operational false-alarm penalties:
-1. *For False-Alarm Elimination (Carrier Trust):* **CountVectorizer + Logistic Regression** is the most effective model, achieving **100.00% Precision** with **zero false alarms out of 904 legitimate texts** (0.0% false-alarm rate) while successfully intercepting 90.62% of spam. In carrier deployments, blocking an authentic subscriber message violates privacy and SLA commitments; achieving zero false positives is the ultimate operational goal.
-2. *For Maximum Spam Interception:* **CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** detected spam most aggressively, achieving **91.41% Recall** (intercepting 117 of 128 spam messages).
-3. *For Modern Adversarial Smishing:* The **Tier-2 Hybrid Smishing Guard** proved most effective overall, achieving $>91\%$ recall against modern parcel and financial scams that evade standalone statistical classifiers.
+Spam detection efficacy depends on whether the goal is eliminating false alarms or maximizing spam capture:
+1. *For Carrier Trust (Zero False Alarms):* **CountVectorizer + Logistic Regression** proved most effective. It attained **100.00% Precision** with **zero false alarms out of 904 legitimate messages** (0.0% false-alarm rate), while intercepting 90.62% of spam. In telecommunications, dropping a real personal text or bank OTP is unacceptable; zero false positives is the top operational requirement.
+2. *For Maximum Spam Catch Rate:* **CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** performed best, achieving **91.41% Recall** (intercepting 117 of 128 spam messages).
+3. *For Modern Smishing Attacks:* The **Tier-2 Hybrid Smishing Guard** proved most effective, achieving $>91\%$ recall on modern delivery and banking scams that bypassed pure statistical models.
 
 **RQ4: Which classifier produced the fewest false negatives (missed spam)?**
-**CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** produced the fewest false negatives, tied at only **11 False Negatives** out of 128 test spam messages (Recall = **91.41%**, 117 blocked spam). CountVectorizer + Logistic Regression produced 12 false negatives (Recall = 90.62%), Bernoulli Naive Bayes produced 14 false negatives (Recall = 89.06%), and TF-IDF + Multinomial Naive Bayes produced 15 false negatives (Recall = 88.28%).
+**CountVectorizer + Linear SVM** and **CountVectorizer + Multinomial Naive Bayes** produced the fewest false negatives, tied at only **11 missed spam messages** out of 128 (Recall = **91.41%**). CountVectorizer + Logistic Regression missed 12 spam texts (Recall = 90.62%), Bernoulli Naive Bayes missed 14 (Recall = 89.06%), and TF-IDF + Multinomial Naive Bayes missed 15 (Recall = 88.28%).
 
 **RQ5: Why might one algorithm perform better than another?**
-The performance differentials stem from foundational differences in mathematical structure and inductive bias:
-1. *Generative vs. Discriminative Modeling:* Naive Bayes models the joint distribution $P(\mathbf{x}, y)$ and relies on the strict conditional independence assumption $P(\mathbf{x} \mid y) = \prod P(x_j \mid y)$. In natural language, words correlate strongly (e.g., `urgent` with `call`, or `redelivery` with `fee`). While this conditional correlation pushes probabilistic estimates toward overconfidence, Bernoulli NB's binary indicator formulation ($x_j \in \{0, 1\}$) serves as a natural regularizer, creating a conservative decision boundary that yields only 1 false positive. Conversely, discriminative algorithms (Logistic Regression and SVM) optimize decision hyperplanes directly without independence assumptions, allowing them to assign high, correlated positive weights to decisive tokens (`urltoken`, `currencytoken`) that easily override benign context words.
-2. *Loss Function Properties:* Linear SVM maximizes the margin distance ($2 / \|\mathbf{w}\|$), optimizing boundary resilience against borderline samples and yielding the highest recall (11 FN). Logistic Regression ($C=10.0$) minimizes smooth logistic log-loss, preventing extreme parameter weights and separating authentic subscriber messages cleanly with zero false positives.
-3. *Event Space Sensitivity:* Multinomial NB aggregates word counts, making it susceptible to spammers repeating neutral tokens. Bernoulli NB evaluates binary presence, preventing frequency manipulation from distorting posterior estimates.
+These performance differences stem from underlying mathematical designs:
+1. *Generative vs. Discriminative Models:* Naive Bayes models joint probability $P(\mathbf{x}, y)$ and assumes all words are conditionally independent given the class. In natural text, words frequently correlate (`urgent` with `call`, or `redelivery` with `fee`). This violation pushes probability estimates to extreme ends. However, Bernoulli NB's binary indicator format ($x_j \in \{0, 1\}$) acts as a natural regularizer, resulting in a conservative boundary that yielded only 1 false alarm. In contrast, discriminative models (Logistic Regression and SVM) optimize boundary surfaces directly without independence assumptions, enabling them to assign decisive weights to tokens like `urltoken` and `currencytoken`.
+2. *Objective Functions:* Linear SVM maximizes margin separation ($2 / \|\mathbf{w}\|$), helping it catch ambiguous borderline spam (lowest false negatives: 11). Regularized Logistic Regression ($C=10.0$) minimizes smooth log-loss, preventing parameter blowup and achieving clean separation on legitimate messages (zero false alarms).
+3. *Event Space Sensitivity:* Multinomial NB counts repeated words, which can be manipulated if a spammer repeats neutral terms. Bernoulli NB considers only binary presence, making it harder to fool with word repetition.
 
 **RQ6: Does TF-IDF provide effective features for SMS classification?**
-**Yes, but with significant mathematical nuances dictated by short-text sparsity:**
-1. *Effectiveness for Sublinear Regularization:* TF-IDF with sublinear scaling ($\text{TF} = 1 + \log(f)$) dampens promotional burstiness, yielding the Validation Champion (**TF-IDF + Bernoulli NB**, 98.55% accuracy, 1 FP).
-2. *CountVectorizer Superiority in Linear Classifiers:* In character-bounded SMS messages (~15 words), word frequencies rarely exceed unity ($f=1$). In this sparse regime, inverse document frequency downweighting slightly compresses the geometric margins of rare spam cues. CountVectorizer preserves raw discrete occurrence boundaries, allowing Logistic Regression to attain $F_1 = 95.08\%$ versus TF-IDF's $93.83\%$, and Linear SVM to reach $94.74\%$ versus $92.80\%$.
-3. *Mathematical Invariance in Bernoulli NB:* For Bernoulli Naive Bayes, TF-IDF and CountVectorizer produced **identical metrics** (98.55% Accuracy, 93.83% $F_1$, 1 FP, 14 FN). Because Bernoulli NB binarizes features ($x_{ij} \in \{0, 1\}$), any monotonic positive feature weighting is mapped to Boolean truth values, rendering TF-IDF weighting mathematically invariant.
+**Yes, but its impact depends on message length:**
+1. *Sublinear Scaling Benefits:* TF-IDF with sublinear scaling ($\text{TF} = 1 + \log(f)$) dampens repetitive words, helping **TF-IDF + Bernoulli NB** win the Validation Champion spot (98.55% accuracy, 1 false alarm).
+2. *CountVectorizer Edge on Linear Models:* In short 160-character SMS texts (~15 words), words rarely appear more than once ($f=1$). In such sparse text, inverse document frequency downweighting slightly compresses the margin of rare spam cues. CountVectorizer preserves raw occurrence signals, allowing Logistic Regression to reach $F_1 = 95.08\%$ (vs. $93.83\%$ with TF-IDF) and Linear SVM to reach $94.74\%$ (vs. $92.80\%$).
+3. *Invariance in Bernoulli NB:* For Bernoulli Naive Bayes, TF-IDF and CountVectorizer produced **identical metrics** (98.55% Accuracy, 93.83% $F_1$, 1 FP, 14 FN). Because Bernoulli NB binarizes all positive values to 1 ($x_{ij} \in \{0, 1\}$), TF-IDF weighting has no mathematical effect on its predictions.
 
 ---
 
 ### Case II – Statistical Significance and Hypothesis Testing
 
-To determine whether performance variations among the top-performing models reflect true architectural superiority or stochastic sample noise, McNemar's paired test was conducted on the holdout test set ($N=1,032$). Table 4 presents the paired contingency distributions and statistical outcomes.
+To verify whether performance differences among the top models reflect genuine architectural differences rather than random sampling noise, we performed McNemar's paired test on the holdout test set ($N=1,032$). Table 4 summarizes the paired contingency data and test outcomes.
 
 Table 4. McNemar paired test results comparing top-performing classification pipelines ($N=1,032$)
 
@@ -218,9 +217,9 @@ Table 4. McNemar paired test results comparing top-performing classification pip
 | TF-IDF Multinomial NB vs. TF-IDF Bernoulli NB | 1,010 | 2 | 7 | 13 | 9 | 1.7778 | 0.1797 | **No** ($p \ge 0.05$) |
 | CountVec Bernoulli NB vs. TF-IDF Bernoulli NB | 1,017 | 0 | 0 | 15 | 0 | 0.0000 | 1.0000 | **Identical** ($p = 1.0$) |
 
-As shown in Table 4, the paired comparison between the Validation Champion (TF-IDF Bernoulli NB) and the Test Peak Champion (CountVectorizer Logistic Regression) yields a two-tailed exact binomial $p$-value of **0.4531** ($\chi^2 = 0.5714$). Because $p \gg 0.05$, the null hypothesis cannot be rejected: the marginal accuracy difference (3 messages out of 1,032) is statistically indistinguishable from random sampling variance. This empirical finding reinforces the validity of selecting Bernoulli Naive Bayes during cross-validation.
+As shown in Table 4, comparing our Validation Champion (TF-IDF Bernoulli NB) with the Test Peak Champion (CountVectorizer Logistic Regression) yields an exact two-tailed $p$-value of **0.4531** ($\chi^2 = 0.5714$). Because $p \gg 0.05$, the difference of just 3 messages out of 1,032 is not statistically significant and falls well within normal sample variation. This confirms that selecting Bernoulli Naive Bayes during cross-validation was sound.
 
-To provide interval bounds, Table 5 provides 95% Wilson Score Confidence Intervals for Accuracy, Precision, and Recall, alongside $B=1,000$ stratified bootstrap intervals for $F_1$-score.
+Table 5 lists the 95% Wilson Score Confidence Intervals for Accuracy, Precision, and Recall, along with $B=1,000$ bootstrap intervals for $F_1$-score.
 
 Table 5. 95% Confidence intervals for evaluated classification pipelines ($N=1,032$)
 
@@ -238,11 +237,11 @@ Table 5. 95% Confidence intervals for evaluated classification pipelines ($N=1,0
 
 ### Case III – Carrier-Scale Edge Telemetry and Throughput Benchmarking
 
-Telecommunication carrier gateways require real-time inline inspection capable of processing high-volume traffic bursts without introducing queue delays. Fig. 4 illustrates the single-core CPU throughput and latency profiles across pipelines, with empirical benchmarks summarized in Table 6.
+Real-world carrier gateways must process large message spikes without introducing queuing delay. Fig. 4 compares single-core CPU throughput and per-message latency across models, with detailed telemetry reported in Table 6.
 
 ![Fig. 4 Edge latency and throughput comparison](figures/edge_latency_throughput_comparison.png)
 
-**Fig. 4 Edge throughput and single-message inference latency across candidate architectures.**
+**Fig. 4. Edge throughput and single-message inference latency across candidate architectures.**
 
 Table 6. Carrier edge throughput, latency, and memory telemetry benchmarks
 
@@ -258,17 +257,17 @@ Table 6. Carrier edge throughput, latency, and memory telemetry benchmarks
 | TF-IDF + Multinomial NB | 271.4 KB | 0.2949 ms | 304.30 ms | 3,391.4 msgs/s | $\mathcal{O}(k), k \ll |V|$ |
 | DistilBERT Transformer [7] | ~268,000 KB | ~25.0 ms | ~25,800 ms | ~40.0 msgs/s | $\mathcal{O}(L^2 \cdot d)$ |
 
-As documented in Table 6, **CountVectorizer + Logistic Regression** achieves an outstanding wire-speed throughput of **5,774.5 messages/second**, requiring only **0.1732 ms** per message. Its disk footprint is an ultra-compact **146.4 KB**, operating well within 1.5 MB of dynamic RAM. Compared to fine-tuned transformer architectures (e.g., DistilBERT [7]), which require over 260 MB of model storage and process approximately 40 messages/second, the proposed linear pipeline delivers a **$144\times$ throughput speedup** and an **$1,830\times$ reduction in memory overhead**, establishing clear feasibility for micro-controller and SIM-gateway deployments.
+**CountVectorizer + Logistic Regression** achieved an inference throughput of **5,774.5 messages per second**, processing each message in just **0.1732 ms**. The trained model occupies only **146.4 KB** on disk and runs well within 1.5 MB of RAM. By comparison, a fine-tuned transformer like DistilBERT [7] requires over 260 MB of storage and processes only ~40 messages per second. The linear pipeline is **$144\times$ faster** and uses **$1,830\times$ less memory**, making it practical for deployment on edge micro-controllers and carrier SIM gateways.
 
 ---
 
 ### Case IV – Adversarial Stress Testing and Evasion Robustness
 
-Adversarial evasion attacks manipulate character sequences to evade token counters while remaining legible to human victims. Synthetic perturbations combining leetspeak character substitutions (e.g., `@` for `a`, `0` for `o`, `$` for `s`) and token splitting (e.g., `c a s h` for `cash`) were applied to test spam messages at perturbation rates $\epsilon \in \{0.0, 0.10, 0.20, 0.35, 0.50\}$. Fig. 5 illustrates the resulting adversarial recall degradation curves.
+Adversarial evasion attacks alter character sequences to bypass word filters while remaining readable to human users. We applied synthetic character substitutions (leetspeak: `@` for `a`, `0` for `o`, `$` for `s`) and token splitting (`c a s h` for `cash`) to test spam messages at perturbation rates $\epsilon \in \{0.0, 0.10, 0.20, 0.35, 0.50\}$. Fig. 5 shows the resulting recall curves.
 
 ![Fig. 5 Adversarial robustness curves](figures/adversarial_robustness_curve.png)
 
-**Fig. 5 Adversarial evasion robustness comparison under token permutation noise ($\epsilon \in [0.0, 0.50]$).**
+**Fig. 5. Adversarial evasion robustness comparison under token permutation noise ($\epsilon \in [0.0, 0.50]$).**
 
 Table 7. Adversarial evasion robustness across varying perturbation noise levels ($\epsilon$)
 
@@ -280,28 +279,28 @@ Table 7. Adversarial evasion robustness across varying perturbation noise levels
 | TF-IDF + Linear SVM | 90.62% (116/128) | 89.84% (115/128) | 89.84% (115/128) | 91.41% (117/128) | 92.19% (118/128) | +1.57% |
 | **Tier-2 Hybrid Smishing Guard (Proposed)** | **90.62% (116/128)** | **88.28% (113/128)** | **88.28% (113/128)** | **91.41% (117/128)** | **92.19% (118/128)** | **+1.57% (Maintains $>91\%$)** |
 
-As demonstrated in Table 7, standalone CountVectorizer Linear SVM suffers severe performance degradation under extreme noise ($\epsilon = 0.50$), with recall falling to **84.38%** (20 spam messages missed). In contrast, the **Tier-2 Hybrid Smishing Guard** sustains an exceptional **92.19% Recall** under severe noise ($\epsilon = 0.50$). Because the heuristic inspection tier targets robust structural markers (such as active URL formats, currency indicators, and regex patterns) that remain invariant under localized word substitutions, the hybrid architecture neutralizes evasion maneuvers without incurring false-positive inflation on legitimate traffic.
+Under severe noise ($\epsilon = 0.50$), standalone CountVectorizer Linear SVM experienced a sharp drop in recall to **84.38%** (missing 20 spam messages). In contrast, the **Tier-2 Hybrid Smishing Guard** held recall steady at **92.19%**. Because the heuristic tier targets fundamental indicators—such as link formats and payment phrasing—that remain detectable despite word-level scrambling, the hybrid setup resists evasion without producing false alarms on legitimate text.
 
 ---
 
 ### Case V – Concept Drift Mitigation and Methodological Benchmark Critique
 
-A primary hazard in deployed mobile networks is conversational concept drift. The UCI dataset (collected in 2011) predominantly comprises historical promotional spam featuring lottery draws, ringtones, and explicit prize claims. Contemporary mobile fraud, by contrast, has shifted entirely to smishing lures that mimic trusted postal couriers and financial institutions.
+Conversational concept drift is an ongoing challenge in live mobile networks. The UCI dataset (collected in 2011) consists largely of older promotional spam: lottery jackpots, ringtone subscriptions, and prize vouchers. Modern smishing, however, relies almost entirely on impersonating delivery services and financial institutions.
 
-To assess concept drift vulnerability, modern zero-day smishing vectors were evaluated against historical standalone models:
+Evaluating modern zero-day smishing messages illustrates this gap:
 - *Sample Lure 1 (Postal Scam):* `"USPS: Your package cannot be delivered due to an incomplete address. Update info within 24h at https://usps-redelivery-fee.top/track to avoid return."`
-  - *Standalone Model Verdict:* Historical Bernoulli NB classifies this text as **Ham** with a spam posterior probability of only $P = 0.081$, because tokens such as `package`, `incomplete`, and `track` frequently appeared in benign 2011 personal exchanges.
-  - *Two-Tier Defense Verdict:* The Tier-2 inspector detects compound indicators: Courier Impersonation (`USPS`, $w=2.0$), Unverified Hyperlink (`.top`, $w=2.5$), and Manufactured Urgency (`within 24h`, $w=1.5$), yielding an aggregated threat score of $S_{\mathrm{smish}} = 6.0 \ge \tau_{\mathrm{threat}}$. The Mode 2 override immediately classifies the message as **Spam** with $100\%$ confidence.
+  - *Standalone Model Verdict:* Historical Bernoulli NB misclassifies this as **Ham** with a spam probability of only $P = 0.081$, because words like `package`, `incomplete`, and `track` appeared often in legitimate personal messages in 2011.
+  - *Two-Tier Defense Verdict:* The Tier-2 inspector flags three compound indicators: Courier Impersonation (`USPS`, $w=2.0$), Unverified Hyperlink (`.top`, $w=2.5$), and Urgency (`within 24h`, $w=1.5$), yielding an aggregated score of $S_{\mathrm{smish}} = 6.0 \ge \tau_{\mathrm{threat}}$. The Mode 2 override immediately classifies the message as **Spam** with 100% confidence.
 - *Sample Lure 2 (Banking Alert):* `"CHASE ALERT: Unauthorized login attempt detected from IP 192.168.1.1. Verify your account immediately: https://chase-security-login.xyz"`
   - *Two-Tier Defense Verdict:* Triggers Authority Impersonation ($w=2.0$), Hyperlink ($w=2.5$), and Urgency ($w=1.5$), immediately triggering quarantine.
 
-#### Methodological Critique of Published Work: IEEE TENCON 2023
+#### Methodological Comparison with Published Literature: IEEE TENCON 2023
 
-To evaluate our methodology against peer-reviewed literature, our experimental framework was benchmarked against the recent study published by de Luna et al. in the *Proceedings of the 2023 IEEE Region 10 Conference (TENCON)* [6]. Fig. 6 illustrates the comparative breakdown.
+To benchmark our findings, we compared our pipeline against the methodology published by de Luna et al. in the *Proceedings of the 2023 IEEE Region 10 Conference (TENCON)* [6]. Fig. 6 displays the comparative breakdown.
 
 ![Fig. 6 Comparison with published benchmark](figures/paper_vs_our_comparison.png)
 
-**Fig. 6 Methodological comparison between our leak-free factorial pipeline and published literature (IEEE TENCON 2023).**
+**Fig. 6. Methodological comparison between our leak-free factorial pipeline and published literature (IEEE TENCON 2023).**
 
 Table 8. Systematic methodological comparison between IEEE TENCON 2023 and the proposed architecture
 
@@ -315,15 +314,15 @@ Table 8. Systematic methodological comparison between IEEE TENCON 2023 and the p
 | **Concept Drift Defense** | None (Static historical evaluation only) | **Two-Tier Hybrid Guard (Regex multi-vector threat engine)** | Intercepts modern zero-day smishing campaigns |
 | **Statistical Verification** | Single-point metrics without confidence bounds | **McNemar paired tests + 95% Wilson & Bootstrap CIs** | Confirms statistical significance of reported gains |
 
-As demonstrated in Table 8, while de Luna et al. report a nominal accuracy of 99.40% on an artificially balanced subset, their pipeline exhibits a 4.80% false alarm rate—which in carrier operations would drop nearly five out of every one hundred authentic subscriber messages. Furthermore, their vectorization workflow leaks vocabulary statistics across partitions. In contrast, the proposed architecture preserves natural class distribution, guarantees zero data leakage, achieves a **0.00% false-alarm rate (0 FP)**, and provides active defense against modern concept drift.
+Although de Luna et al. reported a nominal accuracy of 99.40% on an artificially balanced subset, their pipeline permitted a 4.80% false alarm rate—meaning nearly five out of every one hundred legitimate messages were discarded. In addition, their feature extraction step leaked vocabulary across the train/test boundary. Our approach preserves the natural class distribution, eliminates data leakage, achieves a **0.00% false-alarm rate (0 FP)**, and provides active defense against modern concept drift.
 
 ---
 
 ## 5. Conclusion
 
-This paper presented an empirical investigation into cellular SMS fraud detection, addressing the challenges of class imbalance, lexical sparsity, false-alarm asymmetry, and concept drift. Through a leak-free $2 \times 4$ factorial benchmark on the benchmark UCI SMS Spam Collection ($N=5,160$), this study demonstrated that regularized Logistic Regression achieves a peak test accuracy of 98.84%, an $F_1$-score of 95.08%, and 100.00% precision with zero false alarms across 904 legitimate messages. Statistical hypothesis testing via McNemar's paired test ($p = 0.4531$) confirmed that top-performing linear and naive Bayes pipelines achieve asymptotic equivalence on static historical benchmarks. Profiling on commodity single-core hardware established an inference throughput of 5,774.5 messages/second ($0.173\text{ ms}$ per message) with a 146.4 KB model binary, outperforming fine-tuned transformer architectures by over $140\times$. Furthermore, the proposed Two-Tier Hybrid Smishing Defense Architecture successfully mitigates modern concept drift and adversarial token evasion, maintaining $>91\%$ recall under severe noise ($\epsilon = 0.50$) without compromising false-alarm guarantees.
+This study evaluated machine learning algorithms and feature representations for SMS spam detection under natural class imbalance, lexical sparsity, and operational false-alarm constraints. Using a leak-free $2 \times 4$ factorial benchmark on the UCI SMS Spam Collection ($N=5,160$), we found that CountVectorizer paired with regularized Logistic Regression achieved a top test accuracy of 98.84%, an $F_1$-score of 95.08%, and 100.00% precision with zero false alarms across 904 legitimate messages. McNemar's paired test ($p = 0.4531$) showed that differences among the top linear and naive Bayes models on static historical text are within random sampling variation. On single-core CPU hardware, the linear model processed 5,774.5 messages per second ($0.173\text{ ms}$ per message) with a 146.4 KB file size, outperforming transformer architectures by over $140\times$. Finally, our two-tier hybrid architecture resolved concept drift and adversarial token manipulation, maintaining $>91\%$ recall under severe noise ($\epsilon = 0.50$) without compromising zero-false-alarm guarantees.
 
-Future work will expand the hybrid framework to multilingual and code-mixed cellular traffic (e.g., Hinglish and Indic scripts) and evaluate hardware implementation on embedded edge micro-controllers and carrier SIM applets.
+Future work will expand the evaluation to multilingual and code-mixed messages (e.g., Hinglish and Indic scripts) and examine hardware deployment on cellular SIM applets and base-station line cards.
 
 ---
 
