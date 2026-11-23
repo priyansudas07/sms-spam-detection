@@ -1,0 +1,242 @@
+[
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "TF-IDF + Bernoulli NB (Champion)",
+    "Adversarial Recall": 89.06,
+    "Blocked Spam": 114,
+    "Evaded Spam": 14,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "CountVec + Logistic Regression (Peak)",
+    "Adversarial Recall": 90.62,
+    "Blocked Spam": 116,
+    "Evaded Spam": 12,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "CountVec + Linear SVM",
+    "Adversarial Recall": 91.41,
+    "Blocked Spam": 117,
+    "Evaded Spam": 11,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "TF-IDF + Linear SVM",
+    "Adversarial Recall": 90.62,
+    "Blocked Spam": 116,
+    "Evaded Spam": 12,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "CountVec + Multinomial NB",
+    "Adversarial Recall": 91.41,
+    "Blocked Spam": 117,
+    "Evaded Spam": 11,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.0,
+    "Model / Architecture": "Tier-2 Hybrid Smishing Guard (Proposed)",
+    "Adversarial Recall": 90.62,
+    "Blocked Spam": 116,
+    "Evaded Spam": 12,
+    "Architecture Type": "Two-Tier Hybrid Guard"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "TF-IDF + Bernoulli NB (Champion)",
+    "Adversarial Recall": 85.16,
+    "Blocked Spam": 109,
+    "Evaded Spam": 19,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "CountVec + Logistic Regression (Peak)",
+    "Adversarial Recall": 86.72,
+    "Blocked Spam": 111,
+    "Evaded Spam": 17,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "CountVec + Linear SVM",
+    "Adversarial Recall": 88.28,
+    "Blocked Spam": 113,
+    "Evaded Spam": 15,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "TF-IDF + Linear SVM",
+    "Adversarial Recall": 89.84,
+    "Blocked Spam": 115,
+    "Evaded Spam": 13,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "CountVec + Multinomial NB",
+    "Adversarial Recall": 90.62,
+    "Blocked Spam": 116,
+    "Evaded Spam": 12,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.1,
+    "Model / Architecture": "Tier-2 Hybrid Smishing Guard (Proposed)",
+    "Adversarial Recall": 88.28,
+    "Blocked Spam": 113,
+    "Evaded Spam": 15,
+    "Architecture Type": "Two-Tier Hybrid Guard"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "TF-IDF + Bernoulli NB (Champion)",
+    "Adversarial Recall": 85.16,
+    "Blocked Spam": 109,
+    "Evaded Spam": 19,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "CountVec + Logistic Regression (Peak)",
+    "Adversarial Recall": 89.84,
+    "Blocked Spam": 115,
+    "Evaded Spam": 13,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "CountVec + Linear SVM",
+    "Adversarial Recall": 89.06,
+    "Blocked Spam": 114,
+    "Evaded Spam": 14,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "TF-IDF + Linear SVM",
+    "Adversarial Recall": 89.84,
+    "Blocked Spam": 115,
+    "Evaded Spam": 13,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "CountVec + Multinomial NB",
+    "Adversarial Recall": 91.41,
+    "Blocked Spam": 117,
+    "Evaded Spam": 11,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.2,
+    "Model / Architecture": "Tier-2 Hybrid Smishing Guard (Proposed)",
+    "Adversarial Recall": 88.28,
+    "Blocked Spam": 113,
+    "Evaded Spam": 15,
+    "Architecture Type": "Two-Tier Hybrid Guard"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "TF-IDF + Bernoulli NB (Champion)",
+    "Adversarial Recall": 87.5,
+    "Blocked Spam": 112,
+    "Evaded Spam": 16,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "CountVec + Logistic Regression (Peak)",
+    "Adversarial Recall": 89.06,
+    "Blocked Spam": 114,
+    "Evaded Spam": 14,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "CountVec + Linear SVM",
+    "Adversarial Recall": 88.28,
+    "Blocked Spam": 113,
+    "Evaded Spam": 15,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "TF-IDF + Linear SVM",
+    "Adversarial Recall": 91.41,
+    "Blocked Spam": 117,
+    "Evaded Spam": 11,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "CountVec + Multinomial NB",
+    "Adversarial Recall": 89.06,
+    "Blocked Spam": 114,
+    "Evaded Spam": 14,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.35,
+    "Model / Architecture": "Tier-2 Hybrid Smishing Guard (Proposed)",
+    "Adversarial Recall": 91.41,
+    "Blocked Spam": 117,
+    "Evaded Spam": 11,
+    "Architecture Type": "Two-Tier Hybrid Guard"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "TF-IDF + Bernoulli NB (Champion)",
+    "Adversarial Recall": 85.94,
+    "Blocked Spam": 110,
+    "Evaded Spam": 18,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "CountVec + Logistic Regression (Peak)",
+    "Adversarial Recall": 87.5,
+    "Blocked Spam": 112,
+    "Evaded Spam": 16,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "CountVec + Linear SVM",
+    "Adversarial Recall": 84.38,
+    "Blocked Spam": 108,
+    "Evaded Spam": 20,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "TF-IDF + Linear SVM",
+    "Adversarial Recall": 92.19,
+    "Blocked Spam": 118,
+    "Evaded Spam": 10,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "CountVec + Multinomial NB",
+    "Adversarial Recall": 93.75,
+    "Blocked Spam": 120,
+    "Evaded Spam": 8,
+    "Architecture Type": "Baseline Statistical ML"
+  },
+  {
+    "Noise Level (Epsilon)": 0.5,
+    "Model / Architecture": "Tier-2 Hybrid Smishing Guard (Proposed)",
+    "Adversarial Recall": 92.19,
+    "Blocked Spam": 118,
+    "Evaded Spam": 10,
+    "Architecture Type": "Two-Tier Hybrid Guard"
+  }
+]

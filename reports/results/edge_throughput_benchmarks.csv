@@ -1,0 +1,9 @@
+Pipeline,Feature Extractor,Algorithm,Disk Footprint (KB),Single Msg Latency (ms),Batch Latency (ms),Throughput (msgs/sec),Complexity Big-O (Inference)
+CountVec + Logistic Regression (Peak),CountVectorizer,Logistic Regression,146.4,0.1732,178.72,5774.5,"O(k), k <= |V|"
+TF-IDF + Bernoulli NB (Champion),TF-IDF,Bernoulli NB,271.6,0.2266,233.81,4413.8,"O(k), k <= |V|"
+CountVec + Bernoulli NB,CountVectorizer,Bernoulli NB,240.3,0.2175,224.43,4598.3,"O(k), k <= |V|"
+TF-IDF + Logistic Regression,TF-IDF,Logistic Regression,132.5,0.2657,274.16,3764.2,"O(k), k <= |V|"
+CountVec + Linear SVM,CountVectorizer,Linear SVM,194.7,0.3683,380.07,2715.3,"O(k), k <= |V|"
+TF-IDF + Linear SVM,TF-IDF,Linear SVM,215.3,0.3495,360.73,2860.9,"O(k), k <= |V|"
+CountVec + Multinomial NB,CountVectorizer,Multinomial NB,240.1,0.3152,325.3,3172.5,"O(k), k <= |V|"
+TF-IDF + Multinomial NB,TF-IDF,Multinomial NB,271.4,0.2949,304.3,3391.4,"O(k), k <= |V|"

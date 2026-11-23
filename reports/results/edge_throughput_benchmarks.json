@@ -1,0 +1,82 @@
+[
+  {
+    "Pipeline": "CountVec + Logistic Regression (Peak)",
+    "Feature Extractor": "CountVectorizer",
+    "Algorithm": "Logistic Regression",
+    "Disk Footprint (KB)": 146.4,
+    "Single Msg Latency (ms)": 0.1732,
+    "Batch Latency (ms)": 178.72,
+    "Throughput (msgs/sec)": 5774.5,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "TF-IDF + Bernoulli NB (Champion)",
+    "Feature Extractor": "TF-IDF",
+    "Algorithm": "Bernoulli NB",
+    "Disk Footprint (KB)": 271.6,
+    "Single Msg Latency (ms)": 0.2266,
+    "Batch Latency (ms)": 233.81,
+    "Throughput (msgs/sec)": 4413.8,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "CountVec + Bernoulli NB",
+    "Feature Extractor": "CountVectorizer",
+    "Algorithm": "Bernoulli NB",
+    "Disk Footprint (KB)": 240.3,
+    "Single Msg Latency (ms)": 0.2175,
+    "Batch Latency (ms)": 224.43,
+    "Throughput (msgs/sec)": 4598.3,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "TF-IDF + Logistic Regression",
+    "Feature Extractor": "TF-IDF",
+    "Algorithm": "Logistic Regression",
+    "Disk Footprint (KB)": 132.5,
+    "Single Msg Latency (ms)": 0.2657,
+    "Batch Latency (ms)": 274.16,
+    "Throughput (msgs/sec)": 3764.2,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "CountVec + Linear SVM",
+    "Feature Extractor": "CountVectorizer",
+    "Algorithm": "Linear SVM",
+    "Disk Footprint (KB)": 194.7,
+    "Single Msg Latency (ms)": 0.3683,
+    "Batch Latency (ms)": 380.07,
+    "Throughput (msgs/sec)": 2715.3,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "TF-IDF + Linear SVM",
+    "Feature Extractor": "TF-IDF",
+    "Algorithm": "Linear SVM",
+    "Disk Footprint (KB)": 215.3,
+    "Single Msg Latency (ms)": 0.3495,
+    "Batch Latency (ms)": 360.73,
+    "Throughput (msgs/sec)": 2860.9,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "CountVec + Multinomial NB",
+    "Feature Extractor": "CountVectorizer",
+    "Algorithm": "Multinomial NB",
+    "Disk Footprint (KB)": 240.1,
+    "Single Msg Latency (ms)": 0.3152,
+    "Batch Latency (ms)": 325.3,
+    "Throughput (msgs/sec)": 3172.5,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  },
+  {
+    "Pipeline": "TF-IDF + Multinomial NB",
+    "Feature Extractor": "TF-IDF",
+    "Algorithm": "Multinomial NB",
+    "Disk Footprint (KB)": 271.4,
+    "Single Msg Latency (ms)": 0.2949,
+    "Batch Latency (ms)": 304.3,
+    "Throughput (msgs/sec)": 3391.4,
+    "Complexity Big-O (Inference)": "O(k), k <= |V|"
+  }
+]

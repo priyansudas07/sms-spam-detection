@@ -869,6 +869,43 @@ elif nav_selection == "Model Performance":
         ]
         st.dataframe(display_df[cols_order], width="stretch", hide_index=True)
 
+        # Statistical Hypothesis Testing & Confidence Intervals Expander
+        with st.expander("📊 Statistical Significance Testing & 95% Confidence Intervals", expanded=False):
+            st.markdown("""
+            <p style="font-size: 0.86rem; color: #17232D; line-height: 1.5; margin-bottom: 10px;">
+                Adhering to IEEE / Scopus publication guidelines, exact <strong>Wilson Score Confidence Intervals</strong> (95% confidence) 
+                were derived for binomial metrics, and <strong>Empirical Percentile Bootstrap</strong> (B=1,000) was applied for $F_1$-score.
+            </p>
+            """, unsafe_allow_html=True)
+            ci_file = os.path.join(PROJECT_ROOT, "reports", "results", "confidence_intervals.csv")
+            if os.path.exists(ci_file):
+                df_ci = pd.read_csv(ci_file)
+                st.dataframe(df_ci[["Pipeline Name", "Accuracy 95% CI", "Precision 95% CI", "Recall 95% CI", "F1-Score 95% CI"]], width="stretch", hide_index=True)
+            st.markdown("""
+            <div style="background: #F5F4EF; border-left: 4px solid #2980B9; padding: 10px 14px; border-radius: 4px; font-size: 0.82rem; margin-top: 8px;">
+                <strong>Exact McNemar's Paired Test (BNB vs. Logistic Regression):</strong> 
+                Discordant Pairs: 7 (2 vs. 5) &nbsp;|&nbsp; <em>p</em>-value = <strong>0.4531</strong> (<em>p</em> &ge; 0.05). 
+                Conclusion: Performance differences on static 2011 benchmarks are within random sampling variance.
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Carrier-Scale Edge Hardware & Throughput Expander
+        with st.expander("⚡ Carrier Edge Deployment & Wire-Speed Throughput Telemetry", expanded=False):
+            st.markdown("""
+            <p style="font-size: 0.86rem; color: #17232D; line-height: 1.5; margin-bottom: 10px;">
+                Measured single-core CPU throughput and serialized model binary footprint for carrier telecom gateways (SMSC / 5G UPF):
+            </p>
+            """, unsafe_allow_html=True)
+            edge_file = os.path.join(PROJECT_ROOT, "reports", "results", "edge_throughput_benchmarks.csv")
+            if os.path.exists(edge_file):
+                df_edge = pd.read_csv(edge_file)
+                st.dataframe(df_edge[["Pipeline", "Disk Footprint (KB)", "Single Msg Latency (ms)", "Throughput (msgs/sec)"]], width="stretch", hide_index=True)
+            st.markdown("""
+            <div style="background: #F5F4EF; border-left: 4px solid #27866B; padding: 10px 14px; border-radius: 4px; font-size: 0.82rem; margin-top: 8px;">
+                <strong>Edge Feasibility:</strong> CountVectorizer + Logistic Regression achieves <strong>5,774 msgs/sec</strong> sustained throughput with a binary footprint of only <strong>146.4 KB</strong> (&lt; 1.5 MB RAM working memory), outperforming deep transformers by over 140&times; in speed.
+            </div>
+            """, unsafe_allow_html=True)
+
     else:
         st.error("Evaluation results file 'reports/results/results_summary.csv' not found. Please run 'python src/evaluation.py'.")
 
@@ -888,10 +925,21 @@ elif nav_selection == "Model Performance":
             st.image(feat_chart, caption="Figure 2: TF-IDF vs. CountVectorizer Aggregated Comparison", width="stretch")
 
     st.markdown("<br>", unsafe_allow_html=True)
+    col_g3, col_g4 = st.columns(2)
+    with col_g3:
+        edge_chart = os.path.join(PROJECT_ROOT, "reports", "figures", "edge_latency_throughput_comparison.png")
+        if os.path.exists(edge_chart):
+            st.image(edge_chart, caption="Figure 3: Carrier Edge Throughput & Serialization Footprint Benchmark", width="stretch")
+    with col_g4:
+        adv_chart = os.path.join(PROJECT_ROOT, "reports", "figures", "adversarial_robustness_curve.png")
+        if os.path.exists(adv_chart):
+            st.image(adv_chart, caption="Figure 4: Adversarial Recall Degradation Curve under Leetspeak Perturbations", width="stretch")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 8-Panel Confusion Matrix Grid")
     all_cm = os.path.join(PROJECT_ROOT, "reports", "figures", "confusion_matrices_all8.png")
     if os.path.exists(all_cm):
-        st.image(all_cm, caption="Figure 3: Confusion Matrices for All 8 Experimental Pipelines (904 Ham, 128 Spam)", width="stretch")
+        st.image(all_cm, caption="Figure 5: Confusion Matrices for All 8 Experimental Pipelines (904 Ham, 128 Spam)", width="stretch")
 
 
 # ==============================================================================

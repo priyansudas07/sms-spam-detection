@@ -1,0 +1,31 @@
+Noise Level (Epsilon),Model / Architecture,Adversarial Recall,Blocked Spam,Evaded Spam,Architecture Type
+0.0,TF-IDF + Bernoulli NB (Champion),89.06,114,14,Baseline Statistical ML
+0.0,CountVec + Logistic Regression (Peak),90.62,116,12,Baseline Statistical ML
+0.0,CountVec + Linear SVM,91.41,117,11,Baseline Statistical ML
+0.0,TF-IDF + Linear SVM,90.62,116,12,Baseline Statistical ML
+0.0,CountVec + Multinomial NB,91.41,117,11,Baseline Statistical ML
+0.0,Tier-2 Hybrid Smishing Guard (Proposed),90.62,116,12,Two-Tier Hybrid Guard
+0.1,TF-IDF + Bernoulli NB (Champion),85.16,109,19,Baseline Statistical ML
+0.1,CountVec + Logistic Regression (Peak),86.72,111,17,Baseline Statistical ML
+0.1,CountVec + Linear SVM,88.28,113,15,Baseline Statistical ML
+0.1,TF-IDF + Linear SVM,89.84,115,13,Baseline Statistical ML
+0.1,CountVec + Multinomial NB,90.62,116,12,Baseline Statistical ML
+0.1,Tier-2 Hybrid Smishing Guard (Proposed),88.28,113,15,Two-Tier Hybrid Guard
+0.2,TF-IDF + Bernoulli NB (Champion),85.16,109,19,Baseline Statistical ML
+0.2,CountVec + Logistic Regression (Peak),89.84,115,13,Baseline Statistical ML
+0.2,CountVec + Linear SVM,89.06,114,14,Baseline Statistical ML
+0.2,TF-IDF + Linear SVM,89.84,115,13,Baseline Statistical ML
+0.2,CountVec + Multinomial NB,91.41,117,11,Baseline Statistical ML
+0.2,Tier-2 Hybrid Smishing Guard (Proposed),88.28,113,15,Two-Tier Hybrid Guard
+0.35,TF-IDF + Bernoulli NB (Champion),87.5,112,16,Baseline Statistical ML
+0.35,CountVec + Logistic Regression (Peak),89.06,114,14,Baseline Statistical ML
+0.35,CountVec + Linear SVM,88.28,113,15,Baseline Statistical ML
+0.35,TF-IDF + Linear SVM,91.41,117,11,Baseline Statistical ML
+0.35,CountVec + Multinomial NB,89.06,114,14,Baseline Statistical ML
+0.35,Tier-2 Hybrid Smishing Guard (Proposed),91.41,117,11,Two-Tier Hybrid Guard
+0.5,TF-IDF + Bernoulli NB (Champion),85.94,110,18,Baseline Statistical ML
+0.5,CountVec + Logistic Regression (Peak),87.5,112,16,Baseline Statistical ML
+0.5,CountVec + Linear SVM,84.38,108,20,Baseline Statistical ML
+0.5,TF-IDF + Linear SVM,92.19,118,10,Baseline Statistical ML
+0.5,CountVec + Multinomial NB,93.75,120,8,Baseline Statistical ML
+0.5,Tier-2 Hybrid Smishing Guard (Proposed),92.19,118,10,Two-Tier Hybrid Guard

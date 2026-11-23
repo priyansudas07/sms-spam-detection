@@ -54,13 +54,16 @@ Automated spam classification in cellular networks presents fundamental methodol
 ## Key Features
 
 - **End-to-End Leakage-Free Architecture:** Vectorizers, scalers, and estimators encapsulated in `Pipeline` objects with fixed random seeds (`random_state=42`).
-- **5-Regime Preprocessing Ablation:** Empirical evidence demonstrating why semantic token substitution (`urltoken`, `currencytoken`) outperforms aggressive text stripping.
+- **5-Regime Preprocessing Ablation:** Empirical evidence demonstrating why semantic token substitution (`urltoken`, `currencytoken`) outperforms aggressive text stripping (+3.59% $F_1$).
 - **Factorial Experimental Matrix:** 8 distinct combinations evaluated under identical stratified partitions.
 - **Dual Model Profiling:** Clear reporting distinguishing the **Training Validation Champion** from the **Peak Observed Test Score**.
+- **Formal Statistical Significance Testing:** Exact non-parametric McNemar paired hypothesis tests ($p \ge 0.1797$) and 95% Wilson Score / Bootstrap confidence intervals across all 8 models.
+- **Carrier-Scale Edge Telemetry:** Measured single-core throughput exceeding **5,700 messages/sec** with an ultra-compact **146.4 KB** serialized model binary.
+- **Adversarial Robustness Testing:** Synthetic stress test evaluating leetspeak and delimiter token splitting across 5 noise levels ($\epsilon \in [0.0, 0.50]$).
 - **Tier-2 Hybrid Smishing Defense Layer:** Real-time multi-vector pattern scanner (`src/smishing_heuristics.py`) detecting unverified hyperlinks, monetary fee extortion, manufactured urgency deadlines, and postal/courier impersonation lures, integrated with an empirical reliability-weighted consensus ensemble.
 - **8-Panel Confusion Matrix Visual Grid:** Complete transparency reporting True Negatives, False Positives, Missed Spam, and Blocked Spam.
 - **SIGNAL Streamlit Workstation:** 5-page interactive dashboard (Message Analyzer, Model Performance, Dataset Explorer, Research Comparison, About Project).
-- **Publication-Ready Artifacts:** Automatically generated 300 DPI comparative charts and a formal 7-page academic PDF report.
+- **Publication-Ready Artifacts:** Automatically generated 300 DPI comparative charts and a formal 8-page academic PDF report.
 
 ---
 
@@ -451,7 +454,7 @@ sms-spam-detection/
 │   └── sms_spam_detection.ipynb        # End-to-end reproducible research notebook
 │
 ├── reports/
-│   ├── research_report.md              # Comprehensive 12-section academic research report
+│   ├── research_report.md              # Comprehensive 16-section academic research report
 │   ├── research_comparison.md          # Authoritative IEEE TENCON 2023 comparative analysis
 │   ├── dataset_audit_report.md         # Detailed dataset integrity & preprocessing audit report
 │   ├── sms_spam_detection_report.pdf   # Publication-ready compiled PDF report
@@ -460,6 +463,10 @@ sms-spam-detection/
 │   │   ├── results_summary.json        # Machine-readable evaluation metrics
 │   │   ├── cv_results_summary.csv      # Stratified 5-fold CV training selection metrics
 │   │   ├── cv_results_summary.json     # Machine-readable CV results
+│   │   ├── confidence_intervals.csv    # 95% Wilson Score & Bootstrap confidence intervals
+│   │   ├── statistical_significance_results.json # Exact McNemar tests & significance analysis
+│   │   ├── edge_throughput_benchmarks.csv # Carrier edge throughput & latency benchmarks
+│   │   ├── adversarial_stress_test_results.csv # Synthetic leetspeak evasion stress metrics
 │   │   ├── dataset_audit_metrics.json  # Exact verified dataset & morphological statistics
 │   │   └── preprocessing_ablation_results.csv # 5-regime preprocessing ablation metrics
 │   └── figures/
@@ -473,7 +480,9 @@ sms-spam-detection/
 │       ├── feature_extraction_comparison.png # Macro TF-IDF vs CountVectorizer comparison
 │       ├── confusion_matrices_all8.png # 8-panel confusion matrix visual grid
 │       ├── preprocessing_ablation_comparison.png # Preprocessing ablation bar chart
-│       └── paper_vs_our_comparison.png # Publication comparison chart vs IEEE TENCON 2023
+│       ├── paper_vs_our_comparison.png # Publication comparison chart vs IEEE TENCON 2023
+│       ├── edge_latency_throughput_comparison.png # Carrier edge throughput & size benchmark
+│       └── adversarial_robustness_curve.png # Adversarial recall degradation curve
 │
 ├── src/
 │   ├── __init__.py                     # Package initialization
@@ -485,6 +494,9 @@ sms-spam-detection/
 │   ├── dataset_and_preprocessing_audit.py # Dataset integrity audit & 5-regime ablation
 │   ├── paper_comparison.py             # IEEE TENCON 2023 benchmark & figure generation
 │   ├── smishing_heuristics.py          # Tier-2 multi-vector smishing scanner & weighted consensus engine
+│   ├── statistical_tests.py            # McNemar hypothesis testing & Wilson score CIs
+│   ├── edge_benchmarks.py              # Carrier edge throughput & complexity profiling
+│   ├── adversarial_stress_test.py      # Adversarial noise & robustness degradation curve
 │   ├── generate_pdf.py                 # Academic publication PDF report compiler
 │   └── create_notebook.py              # Reproducible research notebook generator
 │

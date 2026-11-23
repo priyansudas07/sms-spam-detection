@@ -1,0 +1,137 @@
+[
+  {
+    "model_a": "TF-IDF + Bernoulli NB (Champion)",
+    "model_b": "CountVectorizer + Logistic Regression (Peak)",
+    "contingency_table": {
+      "both_correct": 1015,
+      "model_a_only_correct": 2,
+      "model_b_only_correct": 5,
+      "both_wrong": 10
+    },
+    "discordant_pairs": 7,
+    "mcnemar_chi2_statistic": 0.5714,
+    "p_value": 0.453125,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.4531 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "TF-IDF + Bernoulli NB (Champion)",
+    "model_b": "CountVectorizer + Linear SVM",
+    "contingency_table": {
+      "both_correct": 1013,
+      "model_a_only_correct": 4,
+      "model_b_only_correct": 6,
+      "both_wrong": 9
+    },
+    "discordant_pairs": 10,
+    "mcnemar_chi2_statistic": 0.1,
+    "p_value": 0.753906,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.7539 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "TF-IDF + Bernoulli NB (Champion)",
+    "model_b": "TF-IDF + Linear SVM",
+    "contingency_table": {
+      "both_correct": 1010,
+      "model_a_only_correct": 7,
+      "model_b_only_correct": 4,
+      "both_wrong": 11
+    },
+    "discordant_pairs": 11,
+    "mcnemar_chi2_statistic": 0.3636,
+    "p_value": 0.548828,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.5488 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "TF-IDF + Bernoulli NB (Champion)",
+    "model_b": "TF-IDF + Logistic Regression",
+    "contingency_table": {
+      "both_correct": 1014,
+      "model_a_only_correct": 3,
+      "model_b_only_correct": 3,
+      "both_wrong": 12
+    },
+    "discordant_pairs": 6,
+    "mcnemar_chi2_statistic": 0.1667,
+    "p_value": 1.0,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 1.0000 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "TF-IDF + Bernoulli NB (Champion)",
+    "model_b": "CountVectorizer + Bernoulli NB",
+    "contingency_table": {
+      "both_correct": 1017,
+      "model_a_only_correct": 0,
+      "model_b_only_correct": 0,
+      "both_wrong": 15
+    },
+    "discordant_pairs": 0,
+    "mcnemar_chi2_statistic": 0.0,
+    "p_value": 1.0,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 1.0000 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "CountVectorizer + Logistic Regression (Peak)",
+    "model_b": "TF-IDF + Logistic Regression",
+    "contingency_table": {
+      "both_correct": 1015,
+      "model_a_only_correct": 5,
+      "model_b_only_correct": 2,
+      "both_wrong": 10
+    },
+    "discordant_pairs": 7,
+    "mcnemar_chi2_statistic": 0.5714,
+    "p_value": 0.453125,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.4531 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "CountVectorizer + Linear SVM",
+    "model_b": "TF-IDF + Linear SVM",
+    "contingency_table": {
+      "both_correct": 1011,
+      "model_a_only_correct": 8,
+      "model_b_only_correct": 3,
+      "both_wrong": 10
+    },
+    "discordant_pairs": 11,
+    "mcnemar_chi2_statistic": 1.4545,
+    "p_value": 0.226562,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.2266 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "TF-IDF + Multinomial NB",
+    "model_b": "TF-IDF + Bernoulli NB (Champion)",
+    "contingency_table": {
+      "both_correct": 1010,
+      "model_a_only_correct": 2,
+      "model_b_only_correct": 7,
+      "both_wrong": 13
+    },
+    "discordant_pairs": 9,
+    "mcnemar_chi2_statistic": 1.7778,
+    "p_value": 0.179688,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.1797 >= 0.05); differences are within random sample variation"
+  },
+  {
+    "model_a": "CountVectorizer + Multinomial NB",
+    "model_b": "CountVectorizer + Bernoulli NB",
+    "contingency_table": {
+      "both_correct": 1011,
+      "model_a_only_correct": 4,
+      "model_b_only_correct": 6,
+      "both_wrong": 11
+    },
+    "discordant_pairs": 10,
+    "mcnemar_chi2_statistic": 0.1,
+    "p_value": 0.753906,
+    "is_statistically_significant": false,
+    "interpretation": "No statistically significant difference (p = 0.7539 >= 0.05); differences are within random sample variation"
+  }
+]
