@@ -113,8 +113,8 @@ def run_edge_benchmarks(
     os.makedirs(fig_dir, exist_ok=True)
     fig_path = os.path.join(fig_dir, "edge_latency_throughput_comparison.png")
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5), dpi=300)
-    plt.subplots_adjust(wspace=0.35, bottom=0.22)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16.5, 5.8), dpi=300)
+    plt.subplots_adjust(wspace=0.58, bottom=0.18, left=0.18, right=0.96)
 
     palette = sns.color_palette("mako", len(df_bench))
 
@@ -126,8 +126,8 @@ def run_edge_benchmarks(
     ax1.grid(axis="x", linestyle="--", alpha=0.5)
     for bar in bars1:
         w = bar.get_width()
-        ax1.text(w + 150, bar.get_y() + bar.get_height()/2, f"{int(w):,} msg/s", va="center", fontsize=8, fontweight="bold", color="#17232D")
-    ax1.set_xlim(0, max(df_bench["Throughput (msgs/sec)"]) * 1.20)
+        ax1.text(w + 100, bar.get_y() + bar.get_height()/2, f"{int(w):,} msg/s", va="center", fontsize=8, fontweight="bold", color="#17232D")
+    ax1.set_xlim(0, max(df_bench["Throughput (msgs/sec)"]) * 1.22)
 
     # Subplot 2: Disk Serialization Footprint (KB)
     df_sorted_sz = df_bench.sort_values(by="Disk Footprint (KB)", ascending=False)
@@ -138,7 +138,7 @@ def run_edge_benchmarks(
     for bar in bars2:
         w = bar.get_width()
         ax2.text(w + 5, bar.get_y() + bar.get_height()/2, f"{w:.1f} KB", va="center", fontsize=8, fontweight="bold", color="#17232D")
-    ax2.set_xlim(0, max(df_bench["Disk Footprint (KB)"]) * 1.25)
+    ax2.set_xlim(0, max(df_bench["Disk Footprint (KB)"]) * 1.22)
 
     plt.suptitle("SIGNAL: Carrier Edge Deployment & Inference Throughput Benchmark (Single CPU Core)", fontsize=12, fontweight="bold", y=0.98)
     plt.savefig(fig_path, dpi=300, bbox_inches="tight")
