@@ -30,7 +30,7 @@ The remainder of this paper is organized as follows. Section 2 presents the syst
 
 The overall schematic layout of the proposed cellular SMS NLP and classification pipeline is illustrated in Fig. 1. Inbound cellular traffic undergoes systematic text normalization, token transformation, and sparse vector representation before being evaluated by the classification engine under leak-free nested validation. The operational parameters and hyperparameters adopted throughout this investigation are summarized in Table 1.
 
-![Fig. 1 Overall schematic layout of the proposed system](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/fig1_pipeline_schematic.png)
+![Fig. 1 Overall schematic layout of the proposed system](figures/fig1_pipeline_schematic.png)
 
 **Fig. 1 Overall schematic layout of the proposed cellular SMS NLP and classification pipeline.**
 
@@ -100,7 +100,7 @@ with class labels $y_i \in \{-1, +1\}$. Tuning $C=10.0$ relaxes structural penal
 
 Conventional standalone statistical models, while exceptionally rapid, remain vulnerable to concept drift and adversarial token obfuscation. To guarantee robust cellular protection, this paper proposes the Two-Tier Hybrid Smishing Defense Architecture shown in Fig. 2.
 
-![Fig. 2 Schematic block diagram of the proposed method](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/fig2_two_tier_defense.png)
+![Fig. 2 Schematic block diagram of the proposed method](figures/fig2_two_tier_defense.png)
 
 **Fig. 2 Schematic block diagram of the proposed Two-Tier Hybrid Smishing Defense Architecture.**
 
@@ -153,7 +153,7 @@ Table 2. Test scenarios considered for performance evaluation
 
 The comparative performance across all eight factorial pipelines on the untouched holdout test partition ($N=1,032$; 904 Ham, 128 Spam) is illustrated in Fig. 3, with comprehensive metrics detailed in Table 3.
 
-![Fig. 3 Performance comparison of the proposed method and the benchmark methods under Case I](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/model_comparison_barchart.png)
+![Fig. 3 Performance comparison of the proposed method and the benchmark methods under Case I](figures/model_comparison_barchart.png)
 
 **Fig. 3 Performance comparison across the $2 \times 4$ factorial pipelines on the natural test partition ($N=1,032$).**
 
@@ -240,7 +240,7 @@ Table 5. 95% Confidence intervals for evaluated classification pipelines ($N=1,0
 
 Telecommunication carrier gateways require real-time inline inspection capable of processing high-volume traffic bursts without introducing queue delays. Fig. 4 illustrates the single-core CPU throughput and latency profiles across pipelines, with empirical benchmarks summarized in Table 6.
 
-![Fig. 4 Edge latency and throughput comparison](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/edge_latency_throughput_comparison.png)
+![Fig. 4 Edge latency and throughput comparison](figures/edge_latency_throughput_comparison.png)
 
 **Fig. 4 Edge throughput and single-message inference latency across candidate architectures.**
 
@@ -266,7 +266,7 @@ As documented in Table 6, **CountVectorizer + Logistic Regression** achieves an 
 
 Adversarial evasion attacks manipulate character sequences to evade token counters while remaining legible to human victims. Synthetic perturbations combining leetspeak character substitutions (e.g., `@` for `a`, `0` for `o`, `$` for `s`) and token splitting (e.g., `c a s h` for `cash`) were applied to test spam messages at perturbation rates $\epsilon \in \{0.0, 0.10, 0.20, 0.35, 0.50\}$. Fig. 5 illustrates the resulting adversarial recall degradation curves.
 
-![Fig. 5 Adversarial robustness curves](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/adversarial_robustness_curve.png)
+![Fig. 5 Adversarial robustness curves](figures/adversarial_robustness_curve.png)
 
 **Fig. 5 Adversarial evasion robustness comparison under token permutation noise ($\epsilon \in [0.0, 0.50]$).**
 
@@ -299,7 +299,7 @@ To assess concept drift vulnerability, modern zero-day smishing vectors were eva
 
 To evaluate our methodology against peer-reviewed literature, our experimental framework was benchmarked against the recent study published by de Luna et al. in the *Proceedings of the 2023 IEEE Region 10 Conference (TENCON)* [6]. Fig. 6 illustrates the comparative breakdown.
 
-![Fig. 6 Comparison with published benchmark](file:///C:/Users/priya/.gemini/antigravity/scratch/sms-spam-detection/reports/figures/paper_vs_our_comparison.png)
+![Fig. 6 Comparison with published benchmark](figures/paper_vs_our_comparison.png)
 
 **Fig. 6 Methodological comparison between our leak-free factorial pipeline and published literature (IEEE TENCON 2023).**
 
