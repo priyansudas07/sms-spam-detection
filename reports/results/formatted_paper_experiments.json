@@ -1,0 +1,349 @@
+{
+  "dataset": {
+    "total_unique": 5160,
+    "train_count": 4128,
+    "test_count": 1032,
+    "test_ham": 904,
+    "test_spam": 128,
+    "random_state": 42,
+    "seeds": [
+      42,
+      0,
+      1,
+      7,
+      123
+    ]
+  },
+  "representations": {
+    "Word TF-IDF": {
+      "Multinomial NB": {
+        "cv": {
+          "acc_mean": 0.9830417492112409,
+          "acc_std": 0.0038365077688278125,
+          "prec_mean": 0.9706092214955593,
+          "prec_std": 0.016729265017465966,
+          "rec_mean": 0.8911098419950504,
+          "rec_std": 0.026871625846088012,
+          "f1_mean": 0.9288890492099174,
+          "f1_std": 0.016524285097204824
+        },
+        "test": {
+          "accuracy": 0.9844961240310077,
+          "precision": 0.9666666666666667,
+          "recall": 0.90625,
+          "f1": 0.9354838709677419,
+          "tn": 900,
+          "fp": 4,
+          "fn": 12,
+          "tp": 116
+        },
+        "multi_seed": {
+          "acc_mean": 0.9827519379844961,
+          "acc_std": 0.002243379244726792,
+          "f1_mean": 0.9271959107334885,
+          "f1_std": 0.009733722469307649
+        }
+      },
+      "Bernoulli NB": {
+        "cv": {
+          "acc_mean": 0.9859499596448748,
+          "acc_std": 0.00456998415471045,
+          "prec_mean": 0.9935903182429403,
+          "prec_std": 0.008642348188252814,
+          "rec_mean": 0.8930896630496858,
+          "rec_std": 0.036174536547011,
+          "f1_mean": 0.9402548932405349,
+          "f1_std": 0.020143933108351268
+        },
+        "test": {
+          "accuracy": 0.9883720930232558,
+          "precision": 0.9915254237288136,
+          "recall": 0.9140625,
+          "f1": 0.9512195121951219,
+          "tn": 903,
+          "fp": 1,
+          "fn": 11,
+          "tp": 117
+        },
+        "multi_seed": {
+          "acc_mean": 0.9858527131782946,
+          "acc_std": 0.0029134295306924296,
+          "f1_mean": 0.9399702588745825,
+          "f1_std": 0.013048251587995092
+        }
+      },
+      "Logistic Regression": {
+        "cv": {
+          "acc_mean": 0.9794074400176095,
+          "acc_std": 0.006640786367969543,
+          "prec_mean": 0.9735663739852791,
+          "prec_std": 0.024904132423441788,
+          "rec_mean": 0.8580430230344565,
+          "rec_std": 0.03893986642022182,
+          "f1_mean": 0.9118154058904413,
+          "f1_std": 0.029268140029256984
+        },
+        "test": {
+          "accuracy": 0.9844961240310077,
+          "precision": 0.9912280701754386,
+          "recall": 0.8828125,
+          "f1": 0.9338842975206612,
+          "tn": 903,
+          "fp": 1,
+          "fn": 15,
+          "tp": 113
+        },
+        "multi_seed": {
+          "acc_mean": 0.9812015503875969,
+          "acc_std": 0.0033342345996289313,
+          "f1_mean": 0.9193272505768313,
+          "f1_std": 0.015368850967216465
+        }
+      },
+      "Linear SVM": {
+        "cv": {
+          "acc_mean": 0.983040868735784,
+          "acc_std": 0.006506572596840297,
+          "prec_mean": 0.9684987746372441,
+          "prec_std": 0.02764154567644495,
+          "rec_mean": 0.8930135160860461,
+          "rec_std": 0.03125297185797332,
+          "f1_mean": 0.9290794244139045,
+          "f1_std": 0.027249667373746813
+        },
+        "test": {
+          "accuracy": 0.9883720930232558,
+          "precision": 0.9915254237288136,
+          "recall": 0.9140625,
+          "f1": 0.9512195121951219,
+          "tn": 903,
+          "fp": 1,
+          "fn": 11,
+          "tp": 117
+        },
+        "multi_seed": {
+          "acc_mean": 0.9841085271317829,
+          "acc_std": 0.004359388325272098,
+          "f1_mean": 0.9331970075831263,
+          "f1_std": 0.018897323471194962
+        }
+      }
+    },
+    "Word + Char N-Gram TF-IDF": {
+      "Multinomial NB": {
+        "cv": {
+          "acc_mean": 0.9794080270012474,
+          "acc_std": 0.004538963715804277,
+          "prec_mean": 0.8984296071477071,
+          "prec_std": 0.020484157698881792,
+          "rec_mean": 0.9416714258518942,
+          "rec_std": 0.029398201751243927,
+          "f1_mean": 0.9192190890100047,
+          "f1_std": 0.01815852740135696
+        },
+        "test": {
+          "accuracy": 0.9757751937984496,
+          "precision": 0.8705035971223022,
+          "recall": 0.9453125,
+          "f1": 0.9063670411985019,
+          "tn": 886,
+          "fp": 18,
+          "fn": 7,
+          "tp": 121
+        },
+        "multi_seed": {
+          "acc_mean": 0.9784883720930232,
+          "acc_std": 0.00240497551278893,
+          "f1_mean": 0.9157054292011839,
+          "f1_std": 0.009472479526944754
+        }
+      },
+      "Bernoulli NB": {
+        "cv": {
+          "acc_mean": 0.9874030376403258,
+          "acc_std": 0.00339053092866447,
+          "prec_mean": 0.9736657623440044,
+          "prec_std": 0.019498091251300597,
+          "rec_mean": 0.9241385874738246,
+          "rec_std": 0.014198652462054939,
+          "f1_mean": 0.9481530656716932,
+          "f1_std": 0.013717721008497847
+        },
+        "test": {
+          "accuracy": 0.9864341085271318,
+          "precision": 0.9596774193548387,
+          "recall": 0.9296875,
+          "f1": 0.9444444444444444,
+          "tn": 899,
+          "fp": 5,
+          "fn": 9,
+          "tp": 119
+        },
+        "multi_seed": {
+          "acc_mean": 0.9860465116279069,
+          "acc_std": 0.003904930558063938,
+          "f1_mean": 0.9423142647394493,
+          "f1_std": 0.016411152859503873
+        }
+      },
+      "Logistic Regression": {
+        "cv": {
+          "acc_mean": 0.9832850539291217,
+          "acc_std": 0.004291937961093027,
+          "prec_mean": 0.9764993832870799,
+          "prec_std": 0.017244938411793552,
+          "rec_mean": 0.8872073101085094,
+          "rec_std": 0.02245528640929471,
+          "f1_mean": 0.9296234452289083,
+          "f1_std": 0.018225627269252514
+        },
+        "test": {
+          "accuracy": 0.9874031007751938,
+          "precision": 0.9914529914529915,
+          "recall": 0.90625,
+          "f1": 0.9469387755102041,
+          "tn": 903,
+          "fp": 1,
+          "fn": 12,
+          "tp": 116
+        },
+        "multi_seed": {
+          "acc_mean": 0.9835271317829457,
+          "acc_std": 0.003625637002687934,
+          "f1_mean": 0.9299864819485192,
+          "f1_std": 0.016174815151529704
+        }
+      },
+      "Linear SVM": {
+        "cv": {
+          "acc_mean": 0.9849802626751778,
+          "acc_std": 0.005714818361284412,
+          "prec_mean": 0.9750473575804145,
+          "prec_std": 0.025561628251803525,
+          "rec_mean": 0.9027984009137636,
+          "rec_std": 0.02729940332018548,
+          "f1_mean": 0.9373741462845834,
+          "f1_std": 0.02371297131045856
+        },
+        "test": {
+          "accuracy": 0.9893410852713178,
+          "precision": 0.9915966386554622,
+          "recall": 0.921875,
+          "f1": 0.9554655870445344,
+          "tn": 903,
+          "fp": 1,
+          "fn": 10,
+          "tp": 118
+        },
+        "multi_seed": {
+          "acc_mean": 0.9856589147286821,
+          "acc_std": 0.0032659495244869666,
+          "f1_mean": 0.9398260608786924,
+          "f1_std": 0.014241281728888572
+        }
+      }
+    }
+  },
+  "mcnemar": {
+    "Multinomial NB: Word vs Word+Char": {
+      "n01": 6,
+      "n10": 15,
+      "p_value": 0.0783538818359375
+    },
+    "Bernoulli NB: Word vs Word+Char": {
+      "n01": 4,
+      "n10": 6,
+      "p_value": 0.75390625
+    },
+    "Logistic Regression: Word vs Word+Char": {
+      "n01": 4,
+      "n10": 1,
+      "p_value": 0.375
+    },
+    "Linear SVM: Word vs Word+Char": {
+      "n01": 3,
+      "n10": 2,
+      "p_value": 1.0
+    },
+    "Word TF-IDF: LR vs MNB": {
+      "n01": 8,
+      "n10": 8,
+      "p_value": 1.0
+    },
+    "Word+Char TF-IDF: LR vs MNB": {
+      "n01": 5,
+      "n10": 17,
+      "p_value": 0.01690053939819336
+    }
+  },
+  "error_analysis": {
+    "Multinomial NB": {
+      "fp_count": 4,
+      "fn_count": 12,
+      "fp_samples": [
+        "Nokia phone is lovly..",
+        "Are you free now?can i call now?",
+        "Have you laid your airtel line to rest?"
+      ],
+      "fn_samples": [
+        "Sorry I missed your call let's talk when you have the time. I'm on 07090201529",
+        "LookAtMe!: Thanks for your purchase of a video clip from LookAtMe!, you've been charged 35",
+        "TheMob>Yo yo yo-Here comes a new selection of hot downloads for our members to get for FRE",
+        "Babe: U want me dont u baby! Im nasty and have a thing 4 filthyguys. Fancy a rude time wit",
+        "\"For the most sparkling shopping breaks from 45 per person; call 0121 2025050 or visit www"
+      ]
+    },
+    "Bernoulli NB": {
+      "fp_count": 1,
+      "fn_count": 11,
+      "fp_samples": [
+        "Nokia phone is lovly.."
+      ],
+      "fn_samples": [
+        "Sorry I missed your call let's talk when you have the time. I'm on 07090201529",
+        "LookAtMe!: Thanks for your purchase of a video clip from LookAtMe!, you've been charged 35",
+        "Babe: U want me dont u baby! Im nasty and have a thing 4 filthyguys. Fancy a rude time wit",
+        "\"For the most sparkling shopping breaks from 45 per person; call 0121 2025050 or visit www",
+        "You have 1 new message. Please call 08718738034."
+      ]
+    },
+    "Logistic Regression": {
+      "fp_count": 1,
+      "fn_count": 15,
+      "fp_samples": [
+        "It\u2018s \u00a36 to get in, is that ok?"
+      ],
+      "fn_samples": [
+        "Cashbin.co.uk (Get lots of cash this weekend!) www.cashbin.co.uk Dear Welcome to the weeke",
+        "Good Luck! Draw takes place 28th Feb 06. Good Luck! For removal send STOP to 87239 custome",
+        "Sorry I missed your call let's talk when you have the time. I'm on 07090201529",
+        "LookAtMe!: Thanks for your purchase of a video clip from LookAtMe!, you've been charged 35",
+        "TheMob>Yo yo yo-Here comes a new selection of hot downloads for our members to get for FRE"
+      ]
+    },
+    "Linear SVM": {
+      "fp_count": 1,
+      "fn_count": 11,
+      "fp_samples": [
+        "It\u2018s \u00a36 to get in, is that ok?"
+      ],
+      "fn_samples": [
+        "Sorry I missed your call let's talk when you have the time. I'm on 07090201529",
+        "LookAtMe!: Thanks for your purchase of a video clip from LookAtMe!, you've been charged 35",
+        "Hi I'm sue. I am 20 years old and work as a lapdancer. I love sex. Text me live - I'm i my",
+        "Babe: U want me dont u baby! Im nasty and have a thing 4 filthyguys. Fancy a rude time wit",
+        "\"For the most sparkling shopping breaks from 45 per person; call 0121 2025050 or visit www"
+      ]
+    }
+  },
+  "demo": [
+    {
+      "message": "Congratulations! You have won a free prize!",
+      "prediction": "SPAM"
+    },
+    {
+      "message": "Are you attending the meeting today?",
+      "prediction": "HAM"
+    }
+  ]
+}
